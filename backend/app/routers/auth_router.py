@@ -1,0 +1,43 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from app.database import get_db
+from app.models import User
+from app.schemas import LoginRequest, TokenResponse, RefreshRequest, UserResponse
+from app.auth import (
+    verify_password, create_access_token, create_refresh_token, get_current_user,
+)
+from app.config import settings
+
+router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+@router.post("/login", response_model=TokenResponse)
+def login(body: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == body.username).first()
+    if not user or not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return TokenResponse(
+        access_token=create_access_token(user.id, user.role),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(body: RefreshRequest, db: Session = Depends(get_db)):
+    try:
+        payload = jwt.decode(body.refresh_token, settings.secret_key, algorithms=[settings.algorithm])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+        user_id = int(payload["sub"])
+    except (JWTError, KeyError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return TokenResponse(
+        access_token=create_access_token(user.id, user.role),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+@router.get("/me", response_model=UserResponse)
+def me(user: User = Depends(get_current_user)):
+    return user
