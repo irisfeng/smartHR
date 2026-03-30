@@ -21,15 +21,28 @@ def extract_zip(zip_path: str, position_id: int) -> list[str]:
     pdf_paths = []
     upload_dir = ensure_upload_dir() / str(position_id)
     upload_dir.mkdir(parents=True, exist_ok=True)
+    max_single_file_mb = 50
+    max_total_files = 200
     with zipfile.ZipFile(zip_path, "r") as zf:
-        for name in zf.namelist():
-            if name.lower().endswith(".pdf") and not name.startswith("__MACOSX"):
-                content = zf.read(name)
-                base_name = os.path.basename(name)
-                unique_name = f"{uuid.uuid4().hex}_{base_name}"
-                file_path = upload_dir / unique_name
-                file_path.write_bytes(content)
-                pdf_paths.append(str(file_path))
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            if not info.filename.lower().endswith(".pdf"):
+                continue
+            if info.filename.startswith("__MACOSX"):
+                continue
+            base_name = os.path.basename(info.filename)
+            if not base_name:
+                continue
+            if info.file_size > max_single_file_mb * 1024 * 1024:
+                continue
+            content = zf.read(info.filename)
+            unique_name = f"{uuid.uuid4().hex}_{base_name}"
+            file_path = upload_dir / unique_name
+            file_path.write_bytes(content)
+            pdf_paths.append(str(file_path))
+            if len(pdf_paths) >= max_total_files:
+                break
     return pdf_paths
 
 def validate_file(filename: str, size: int) -> str | None:
