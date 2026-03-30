@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 
 const api = axios.create({ baseURL: '' });
 
@@ -12,9 +12,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-interface RetryableConfig {
+interface RetryableConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
-  [key: string]: unknown;
 }
 
 api.interceptors.response.use(

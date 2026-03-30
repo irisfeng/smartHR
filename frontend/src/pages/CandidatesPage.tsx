@@ -262,18 +262,18 @@ export default function CandidatesPage() {
               <p style={{ color: '#555', fontSize: 13 }}>{detail.ai_summary}</p>
               {detail.ai_screening_result && (
                 <>
-                  {(detail.ai_screening_result as AiScreeningResult).strengths?.length > 0 && (
+                  {((detail.ai_screening_result as AiScreeningResult).strengths?.length ?? 0) > 0 && (
                     <div style={{ marginBottom: 8 }}>
                       <strong style={{ fontSize: 12, color: '#22c55e' }}>优势：</strong>
-                      {(detail.ai_screening_result as AiScreeningResult).strengths.map((s: string, i: number) => (
+                      {(detail.ai_screening_result as AiScreeningResult).strengths!.map((s: string, i: number) => (
                         <Tag key={i} color="success" style={{ margin: 2 }}>{s}</Tag>
                       ))}
                     </div>
                   )}
-                  {(detail.ai_screening_result as AiScreeningResult).concerns?.length > 0 && (
+                  {((detail.ai_screening_result as AiScreeningResult).concerns?.length ?? 0) > 0 && (
                     <div>
                       <strong style={{ fontSize: 12, color: '#f59e0b' }}>顾虑：</strong>
-                      {(detail.ai_screening_result as AiScreeningResult).concerns.map((s: string, i: number) => (
+                      {(detail.ai_screening_result as AiScreeningResult).concerns!.map((s: string, i: number) => (
                         <Tag key={i} color="warning" style={{ margin: 2 }}>{s}</Tag>
                       ))}
                     </div>
