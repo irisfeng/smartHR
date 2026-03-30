@@ -272,7 +272,15 @@ export default function CandidatesPage() {
 
             <Button
               type="link"
-              onClick={() => window.open(`/api/candidates/${detail.id}/resume`, '_blank')}
+              onClick={async () => {
+                try {
+                  const res = await api.get(`/api/candidates/${detail.id}/resume`, { responseType: 'blob' });
+                  const url = URL.createObjectURL(res.data);
+                  window.open(url, '_blank');
+                } catch {
+                  message.error('获取简历失败');
+                }
+              }}
               style={{ padding: 0, color: '#6366f1' }}
             >
               查看原始简历 PDF →
