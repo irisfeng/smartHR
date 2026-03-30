@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -123,7 +123,7 @@ class UploadBatchResponse(BaseModel):
 
 # Users
 class UserCreate(BaseModel):
-    username: str
-    password: str
-    role: str
-    display_name: str
+    username: str = Field(..., min_length=2, max_length=32)
+    password: str = Field(..., min_length=6, max_length=128)
+    role: str = Field(..., pattern="^(hr|manager)$")
+    display_name: str = Field(..., min_length=1, max_length=32)

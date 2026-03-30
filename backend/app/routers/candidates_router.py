@@ -25,7 +25,8 @@ def list_candidates(
         query = query.filter(Candidate.ai_recommendation == recommendation)
     if education:
         query = query.filter(Candidate.education == education)
-    sort_col = getattr(Candidate, sort_by, Candidate.match_score)
+    allowed_sort = {"match_score", "sequence_no", "name", "education", "age", "created_at"}
+    sort_col = getattr(Candidate, sort_by, Candidate.match_score) if sort_by in allowed_sort else Candidate.match_score
     if sort_order == "desc":
         query = query.order_by(sort_col.desc().nulls_last())
     else:
