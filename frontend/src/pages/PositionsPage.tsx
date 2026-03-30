@@ -39,20 +39,26 @@ export default function PositionsPage() {
   );
 
   const handleSave = async () => {
-    const values = await form.validateFields();
-    if (editingId) {
-      await api.put(`/api/positions/${editingId}`, values);
-    } else {
-      await api.post('/api/positions', values);
+    try {
+      const values = await form.validateFields();
+      if (editingId) {
+        await api.put(`/api/positions/${editingId}`, values);
+      } else {
+        await api.post('/api/positions', values);
+      }
+      message.success(editingId ? '已更新' : '已创建');
+      setModalOpen(false);
+      setEditingId(null);
+      form.resetFields();
+      setLoading(true);
+      api.get('/api/positions')
+        .then((res) => setPositions(res.data))
+        .catch(() => message.error('刷新列表失败'))
+        .finally(() => setLoading(false));
+    } catch (e: any) {
+      if (e.errorFields) throw e;
+      message.error(e.response?.data?.detail || '操作失败');
     }
-    message.success(editingId ? '已更新' : '已创建');
-    setModalOpen(false);
-    setEditingId(null);
-    form.resetFields();
-    setLoading(true);
-    api.get('/api/positions')
-      .then((res) => setPositions(res.data))
-      .finally(() => setLoading(false));
   };
 
   const openEdit = (record: Position) => {

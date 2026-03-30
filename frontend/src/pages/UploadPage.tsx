@@ -21,7 +21,7 @@ export default function UploadPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    api.get(`/api/positions/${id}`).then((res) => setPositionTitle(res.data.title));
+    api.get(`/api/positions/${id}`).then((res) => setPositionTitle(res.data.title)).catch(() => {});
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [id]);
 

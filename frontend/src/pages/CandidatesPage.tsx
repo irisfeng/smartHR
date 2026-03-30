@@ -72,27 +72,39 @@ export default function CandidatesPage() {
   }, [id, filterRec]);
 
   const updateField = async (candidateId: number, field: string, value: string) => {
-    await api.patch(`/api/candidates/${candidateId}`, { [field]: value });
-    setCandidates((prev) =>
-      prev.map((c) => (c.id === candidateId ? { ...c, [field]: value } : c))
-    );
+    try {
+      await api.patch(`/api/candidates/${candidateId}`, { [field]: value });
+      setCandidates((prev) =>
+        prev.map((c) => (c.id === candidateId ? { ...c, [field]: value } : c))
+      );
+    } catch (e: any) {
+      message.error(e.response?.data?.detail || '更新失败');
+    }
   };
 
   const openDetail = async (candidateId: number) => {
-    const res = await api.get(`/api/candidates/${candidateId}`);
-    setDetail(res.data);
-    setDrawerOpen(true);
+    try {
+      const res = await api.get(`/api/candidates/${candidateId}`);
+      setDetail(res.data);
+      setDrawerOpen(true);
+    } catch (e: any) {
+      message.error(e.response?.data?.detail || '获取详情失败');
+    }
   };
 
   const exportExcel = async () => {
-    const res = await api.get(`/api/positions/${id}/export`, { responseType: 'blob' });
-    const url = URL.createObjectURL(res.data);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${positionTitle}_候选人.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
-    message.success('导出成功');
+    try {
+      const res = await api.get(`/api/positions/${id}/export`, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${positionTitle}_候选人.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      message.success('导出成功');
+    } catch (e: any) {
+      message.error(e.response?.data?.detail || '导出失败');
+    }
   };
 
   const stats = {

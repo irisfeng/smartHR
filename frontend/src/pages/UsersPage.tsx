@@ -28,18 +28,27 @@ export default function UsersPage() {
   useEffect(() => { reload(); }, []);
 
   const handleCreate = async () => {
-    const values = await form.validateFields();
-    await api.post('/api/users', values);
-    message.success('用户已创建');
-    setModalOpen(false);
-    form.resetFields();
-    reload();
+    try {
+      const values = await form.validateFields();
+      await api.post('/api/users', values);
+      message.success('用户已创建');
+      setModalOpen(false);
+      form.resetFields();
+      reload();
+    } catch (e: any) {
+      if (e.errorFields) throw e;
+      message.error(e.response?.data?.detail || '创建失败');
+    }
   };
 
   const handleDelete = async (userId: number) => {
-    await api.delete(`/api/users/${userId}`);
-    message.success('已删除');
-    reload();
+    try {
+      await api.delete(`/api/users/${userId}`);
+      message.success('已删除');
+      reload();
+    } catch (e: any) {
+      message.error(e.response?.data?.detail || '删除失败');
+    }
   };
 
   const columns = [
