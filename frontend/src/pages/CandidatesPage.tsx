@@ -54,21 +54,15 @@ export default function CandidatesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detail, setDetail] = useState<CandidateDetail | null>(null);
 
-  const fetchCandidates = async () => {
-    setLoading(true);
-    try {
-      const params: Record<string, string> = {};
-      if (filterRec) params.recommendation = filterRec;
-      const res = await api.get(`/api/positions/${id}/candidates`, { params });
-      setCandidates(res.data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    api.get(`/api/positions/${id}`).then((res) => setPositionTitle(res.data.title));
-    fetchCandidates();
+    api.get(`/api/positions/${id}`).then((res) => setPositionTitle(res.data.title)).catch(() => {});
+    setLoading(true);
+    const params: Record<string, string> = {};
+    if (filterRec) params.recommendation = filterRec;
+    api.get(`/api/positions/${id}/candidates`, { params })
+      .then((res) => setCandidates(res.data))
+      .catch(() => message.error('获取候选人列表失败'))
+      .finally(() => setLoading(false));
   }, [id, filterRec]);
 
   const updateField = async (candidateId: number, field: string, value: string) => {

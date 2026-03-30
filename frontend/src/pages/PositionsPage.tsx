@@ -26,17 +26,13 @@ export default function PositionsPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
-  const fetchPositions = async () => {
+  useEffect(() => {
     setLoading(true);
-    try {
-      const res = await api.get('/api/positions');
-      setPositions(res.data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchPositions(); }, []);
+    api.get('/api/positions')
+      .then((res) => setPositions(res.data))
+      .catch(() => message.error('获取职位列表失败'))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = positions.filter(
     (p) => p.title.includes(search) || p.department.includes(search)
@@ -53,7 +49,10 @@ export default function PositionsPage() {
     setModalOpen(false);
     setEditingId(null);
     form.resetFields();
-    fetchPositions();
+    setLoading(true);
+    api.get('/api/positions')
+      .then((res) => setPositions(res.data))
+      .finally(() => setLoading(false));
   };
 
   const openEdit = (record: Position) => {

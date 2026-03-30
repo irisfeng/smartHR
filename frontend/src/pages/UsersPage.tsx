@@ -17,17 +17,15 @@ export default function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const fetchUsers = async () => {
+  const reload = () => {
     setLoading(true);
-    try {
-      const res = await api.get('/api/users');
-      setUsers(res.data);
-    } finally {
-      setLoading(false);
-    }
+    api.get('/api/users')
+      .then((res) => setUsers(res.data))
+      .catch(() => message.error('获取用户列表失败'))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => { reload(); }, []);
 
   const handleCreate = async () => {
     const values = await form.validateFields();
@@ -35,13 +33,13 @@ export default function UsersPage() {
     message.success('用户已创建');
     setModalOpen(false);
     form.resetFields();
-    fetchUsers();
+    reload();
   };
 
   const handleDelete = async (userId: number) => {
     await api.delete(`/api/users/${userId}`);
     message.success('已删除');
-    fetchUsers();
+    reload();
   };
 
   const columns = [
