@@ -4,16 +4,12 @@ import { Layout, Menu } from 'antd';
 import {
   FileTextOutlined,
   SettingOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../store/authStore';
 import api from '../api';
 
 const { Sider, Content, Header } = Layout;
-
-const menuItems = [
-  { key: '/positions', icon: <FileTextOutlined />, label: '职位管理' },
-  { key: '/users', icon: <SettingOutlined />, label: '用户管理' },
-];
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -30,6 +26,12 @@ export default function AppLayout() {
   }, []);
 
   const selectedKey = '/' + location.pathname.split('/')[1];
+
+  const menuItems = [
+    { key: '/positions', icon: <FileTextOutlined />, label: '职位管理' },
+    ...(user?.role === 'manager' ? [] : [{ key: '/candidates', icon: <TeamOutlined />, label: '候选人管理' }]),
+    { key: '/users', icon: <SettingOutlined />, label: '用户管理' },
+  ];
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

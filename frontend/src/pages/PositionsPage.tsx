@@ -94,9 +94,11 @@ export default function PositionsPage() {
           <a onClick={() => navigate(`/positions/${record.id}/candidates`)}>
             <TeamOutlined /> 候选人
           </a>
-          <a onClick={() => navigate(`/positions/${record.id}/upload`)}>
-            <UploadOutlined /> 上传
-          </a>
+          {user?.role === 'hr' && (
+            <a onClick={() => navigate(`/positions/${record.id}/upload`)}>
+              <UploadOutlined /> 上传
+            </a>
+          )}
           {user?.role === 'manager' && <a onClick={() => openEdit(record)}>编辑</a>}
         </Space>
       ),

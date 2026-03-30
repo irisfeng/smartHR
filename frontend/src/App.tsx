@@ -9,6 +9,7 @@ import PositionsPage from './pages/PositionsPage';
 import UploadPage from './pages/UploadPage';
 import CandidatesPage from './pages/CandidatesPage';
 import UsersPage from './pages/UsersPage';
+import CandidateListPage from './pages/CandidateListPage';
 
 const theme = {
   token: {
@@ -30,6 +31,7 @@ export default function App() {
               <Route path="positions" element={<PositionsPage />} />
               <Route path="positions/:id/upload" element={<UploadPage />} />
               <Route path="positions/:id/candidates" element={<CandidatesPage />} />
+              <Route path="candidates" element={<CandidateListPage />} />
               <Route path="users" element={<UsersPage />} />
             </Route>
           </Routes>
