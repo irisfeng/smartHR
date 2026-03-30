@@ -6,7 +6,6 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
-    mineru_api_url: str = ""
     mineru_api_key: str = ""
 
     ai_api_url: str = "https://api.deepseek.com/v1"
