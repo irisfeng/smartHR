@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Table, Button, Tag, Input, Modal, Form, Space, message } from 'antd';
+import { Card, Table, Button, Tag, Input, Modal, Form, Space, Select, message } from 'antd';
 import { PlusOutlined, SearchOutlined, UploadOutlined, TeamOutlined } from '@ant-design/icons';
 import api from '../api';
 import { useAuthStore } from '../store/authStore';
@@ -150,6 +150,11 @@ export default function PositionsPage() {
           <Form.Item name="requirements" label="关键要求">
             <Input.TextArea rows={3} placeholder="如：本科以上，3年Java经验..." />
           </Form.Item>
+          {editingId && (
+            <Form.Item name="status" label="状态">
+              <Select options={[{ label: '招聘中', value: 'open' }, { label: '已关闭', value: 'closed' }]} />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </>

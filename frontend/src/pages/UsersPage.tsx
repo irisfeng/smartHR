@@ -90,7 +90,7 @@ export default function UsersPage() {
           <Form.Item name="username" label="用户名" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="password" label="密码" rules={[{ required: true, min: 4 }]}>
+          <Form.Item name="password" label="密码" rules={[{ required: true, min: 6, message: '密码至少6位' }]}>
             <Input.Password />
           </Form.Item>
           <Form.Item name="display_name" label="显示名称" rules={[{ required: true }]}>
