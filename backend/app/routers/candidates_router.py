@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models import User, Candidate
 from app.schemas import CandidateResponse, CandidateDetailResponse, CandidateUpdate
 from app.auth import get_current_user
+from app.services.file_service import validate_resume_path
 
 router = APIRouter(tags=["candidates"])
 
@@ -67,4 +68,6 @@ def get_resume(
     candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
     if not candidate:
         raise HTTPException(status_code=404, detail="Candidate not found")
+    if not validate_resume_path(candidate.resume_file_path):
+        raise HTTPException(status_code=404, detail="Resume file not found")
     return FileResponse(candidate.resume_file_path, media_type="application/pdf")

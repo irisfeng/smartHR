@@ -39,3 +39,13 @@ def validate_file(filename: str, size: int) -> str | None:
     if size > settings.max_upload_size_mb * 1024 * 1024:
         return f"File too large (max {settings.max_upload_size_mb}MB)"
     return None
+
+def validate_resume_path(file_path: str) -> bool:
+    """Ensure the file path is within the upload directory."""
+    upload_root = Path(settings.upload_dir).resolve()
+    resolved = Path(file_path).resolve()
+    try:
+        resolved.relative_to(upload_root)
+    except ValueError:
+        return False
+    return resolved.exists() and resolved.is_file()
