@@ -14,11 +14,13 @@ fi
 
 # 2. Format and mount data disk (/dev/vdb)
 if ! mountpoint -q /data; then
-    echo "Mounting data disk..."
-    mkfs.ext4 -F /dev/vdb
+    if ! blkid /dev/vdb &>/dev/null; then
+        echo "Formatting data disk..."
+        mkfs.ext4 /dev/vdb
+    fi
     mkdir -p /data
     mount /dev/vdb /data
-    echo "/dev/vdb /data ext4 defaults 0 2" >> /etc/fstab
+    grep -q '/dev/vdb' /etc/fstab || echo "/dev/vdb /data ext4 defaults 0 2" >> /etc/fstab
     echo "Data disk mounted at /data"
 fi
 mkdir -p /data/{postgres,uploads,backups}
@@ -29,6 +31,7 @@ if [ ! -f .env ]; then
     cp .env.production .env
     SECRET=$(python3 -c "import secrets; print(secrets.token_urlsafe(48))")
     sed -i "s|SECRET_KEY=change-me|SECRET_KEY=${SECRET}|" .env
+    chmod 600 .env
     echo ""
     echo "Please edit .env and fill in:"
     echo "  - POSTGRES_PASSWORD"
@@ -61,6 +64,10 @@ docker compose up -d --build
 echo "Waiting for database..."
 sleep 5
 docker compose exec api python seed.py
+
+# 7. Setup daily backup cron
+(crontab -l 2>/dev/null | grep -v 'smarthr.*backup' ; echo "0 3 * * * cd /opt/smarthr && bash scripts/backup.sh >> /data/backups/cron.log 2>&1") | crontab -
+echo "Daily backup cron configured (3:00 AM)."
 
 echo ""
 echo "=== Deployment Complete ==="

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Daily database backup, retain 7 days
 set -e
+cd "$(dirname "$0")/.."
 
 BACKUP_DIR="${DATA_DIR:-/data}/backups"
 mkdir -p "$BACKUP_DIR"
