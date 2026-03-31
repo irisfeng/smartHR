@@ -54,6 +54,15 @@ class PositionResponse(BaseModel):
 
 # Candidates
 class CandidateUpdate(BaseModel):
+    # Basic info (editable)
+    name: Optional[str] = None
+    gender: Optional[str] = None
+    age: Optional[int] = None
+    phone: Optional[str] = None
+    education: Optional[str] = None
+    school: Optional[str] = None
+    major: Optional[str] = None
+    # Recruitment pipeline fields
     recommend_date: Optional[str] = None
     recommend_channel: Optional[str] = None
     screening_date: Optional[str] = None
@@ -72,42 +81,44 @@ class CandidateUpdate(BaseModel):
 class CandidateResponse(BaseModel):
     id: int
     job_position_id: int
-    sequence_no: Optional[int]
-    name: str
-    gender: str
-    age: Optional[int]
-    phone: str
-    education: str
-    school: str
-    major: str
-    match_score: Optional[float]
-    ai_recommendation: str
-    ai_summary: str
-    screening_result: str
-    first_interview_result: str
-    second_interview_result: str
-    status: str
-    recommend_date: str
-    recommend_channel: str
-    screening_date: str
-    leader_screening: str
-    interview_date: str
-    interview_time: str
-    interview_note: str
-    first_interview_note: str
-    second_interview_invite: str
-    second_interview_note: str
-    project_transfer: str
+    sequence_no: Optional[int] = None
+    name: Optional[str] = ""
+    gender: Optional[str] = ""
+    age: Optional[int] = None
+    phone: Optional[str] = ""
+    education: Optional[str] = ""
+    school: Optional[str] = ""
+    major: Optional[str] = ""
+    match_score: Optional[float] = None
+    parse_quality: Optional[str] = "good"
+    ai_recommendation: Optional[str] = ""
+    ai_summary: Optional[str] = ""
+    screening_result: Optional[str] = ""
+    first_interview_result: Optional[str] = ""
+    second_interview_result: Optional[str] = ""
+    status: Optional[str] = "pending"
+    recommend_date: Optional[str] = ""
+    recommend_channel: Optional[str] = ""
+    screening_date: Optional[str] = ""
+    leader_screening: Optional[str] = ""
+    interview_date: Optional[str] = ""
+    interview_time: Optional[str] = ""
+    interview_note: Optional[str] = ""
+    first_interview_note: Optional[str] = ""
+    second_interview_invite: Optional[str] = ""
+    second_interview_note: Optional[str] = ""
+    project_transfer: Optional[str] = ""
     created_at: datetime
     class Config:
         from_attributes = True
 
 class CandidateDetailResponse(CandidateResponse):
-    id_number: str
-    parsed_text: str
-    ai_screening_result: Optional[dict]
-    resume_file_path: str
-    error_message: str
+    id_number: Optional[str] = ""
+    parsed_text: Optional[str] = ""
+    ai_screening_result: Optional[dict] = None
+    ai_analysis: Optional[str] = ""
+    resume_file_path: Optional[str] = ""
+    error_message: Optional[str] = ""
 
 # Upload
 class UploadBatchResponse(BaseModel):

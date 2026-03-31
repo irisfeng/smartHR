@@ -58,6 +58,7 @@ class Candidate(Base):
     project_transfer = Column(String(100), default="")
     # AI fields
     match_score = Column(Float, nullable=True)
+    parse_quality = Column(String(10), default="good")  # "good" or "poor"
     ai_recommendation = Column(String(20), default="")
     ai_summary = Column(Text, default="")
     ai_screening_result = Column(JSON, nullable=True)

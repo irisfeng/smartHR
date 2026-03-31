@@ -15,18 +15,26 @@ AI_CONCURRENCY = 5  # max concurrent DeepSeek calls
 def _apply_ai_result(candidate: Candidate, result: dict):
     """Write AI screening result fields onto a Candidate."""
     candidate.ai_screening_result = result
-    candidate.name = result.get("name", "")
-    candidate.gender = result.get("gender", "")
+    candidate.name = result.get("name") or ""
+    candidate.gender = result.get("gender") or ""
     candidate.age = result.get("age")
-    candidate.phone = result.get("phone", "")
-    candidate.id_number = result.get("id_number", "")
-    candidate.education = result.get("education", "")
-    candidate.school = result.get("school", "")
-    candidate.major = result.get("major", "")
-    candidate.match_score = result.get("match_score", 0)
-    candidate.ai_recommendation = result.get("recommendation", "待定")
-    candidate.ai_summary = result.get("summary", "")
-    candidate.leader_screening = result.get("recommendation", "")
+    candidate.phone = result.get("phone") or ""
+    candidate.id_number = result.get("id_number") or ""
+    candidate.education = result.get("education") or ""
+    candidate.school = result.get("school") or ""
+    candidate.major = result.get("major") or ""
+    candidate.match_score = result.get("match_score") or 0
+    candidate.ai_recommendation = result.get("recommendation") or "待定"
+    candidate.ai_summary = result.get("summary") or ""
+    candidate.leader_screening = result.get("recommendation") or ""
+    # Parse quality from AI assessment
+    candidate.parse_quality = result.get("parse_quality") or "good"
+    # Double-check: if AI said "good" but key fields are all empty/placeholder, override to "poor"
+    if candidate.parse_quality != "poor":
+        key_fields = [candidate.name, candidate.gender, candidate.education, candidate.school]
+        empty_markers = {"", "未提供", "姓名未提供", "性别未提供", "null"}
+        if all(not f or f in empty_markers for f in key_fields):
+            candidate.parse_quality = "poor"
 
 
 async def process_batch(batch_id: int, db: Session):
@@ -80,14 +88,16 @@ async def process_batch(batch_id: int, db: Session):
                     logger.error(f"AI screening failed for candidate {candidate.id}: {e}")
                     candidate.status = "failed"
                     candidate.error_message = str(e)
+                # Incremental progress update per candidate
+                batch.processed_count = (batch.processed_count or 0) + 1
+                db.commit()
 
         await asyncio.gather(*[screen_one(c) for c in candidates])
 
-    # Commit all results
+    # Commit any remaining results
     db.commit()
 
-    # Update batch progress and status
-    batch.processed_count = len(candidates)
+    # Update batch final status
     all_done = all(c.status in ("completed", "failed") for c in candidates)
     batch.status = "completed" if all_done else "failed"
     db.commit()

@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Table, Tag, Select, Button, Space, Progress, Drawer, Descriptions, message } from 'antd';
-import { ArrowLeftOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/icons';
+import {
+  Card, Table, Tag, Select, Button, Space, Progress, Drawer, Descriptions,
+  Input, InputNumber, Tooltip, message,
+} from 'antd';
+import {
+  ArrowLeftOutlined, DownloadOutlined, UploadOutlined,
+  EditOutlined, WarningOutlined,
+} from '@ant-design/icons';
 import api from '../api';
 
 interface Candidate {
@@ -15,6 +21,7 @@ interface Candidate {
   school: string;
   major: string;
   match_score: number | null;
+  parse_quality: string;
   ai_recommendation: string;
   ai_summary: string;
   screening_result: string;
@@ -37,6 +44,7 @@ interface Candidate {
 interface AiScreeningResult {
   strengths?: string[];
   concerns?: string[];
+  analysis?: string;
   [key: string]: unknown;
 }
 
@@ -44,11 +52,82 @@ interface CandidateDetail extends Candidate {
   id_number: string;
   parsed_text: string;
   ai_screening_result: Record<string, unknown> | null;
+  ai_analysis: string;
   resume_file_path: string;
   error_message: string;
 }
 
 const recColors: Record<string, string> = { '推荐': '#22c55e', '待定': '#f59e0b', '不推荐': '#ef4444' };
+const educationOptions = ['本科', '大专', '硕士', '博士', '专科', '中专', '高中', '初中'];
+
+// Editable cell component
+function EditableCell({
+  value,
+  onSave,
+  type = 'text' as 'text' | 'number' | 'select',
+  options,
+  style,
+}: {
+  value: string | number | null;
+  onSave: (val: string | number | null) => void;
+  type?: 'text' | 'number' | 'select';
+  options?: string[];
+  style?: React.CSSProperties;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [temp, setTemp] = useState(value ?? '');
+
+  if (editing) {
+    const handleSave = () => {
+      const saveVal = type === 'number' ? (temp === '' ? null : Number(temp)) : String(temp);
+      onSave(saveVal);
+      setEditing(false);
+    };
+
+    if (type === 'select' && options) {
+      return (
+        <Select
+          size="small"
+          value={String(temp)}
+          style={{ width: '100%' }}
+          onChange={(v) => { setTemp(v); onSave(v); setEditing(false); }}
+          onBlur={() => setEditing(false)}
+          options={options.map((o) => ({ label: o, value: o }))}
+          autoFocus
+          open
+        />
+      );
+    }
+
+    const InputComponent = type === 'number' ? InputNumber : Input;
+    return (
+      <InputComponent
+        size="small"
+        value={temp}
+        onChange={(e: any) => setTemp(e.target?.value ?? e)}
+        onPressEnter={handleSave}
+        onBlur={handleSave}
+        autoFocus
+        style={{ width: '100%', ...style }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, ...style }}
+      onClick={() => setEditing(true)}
+    >
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {value || '—'}
+      </span>
+      <EditOutlined style={{ color: '#d4d4d8', fontSize: 11, opacity: 0, transition: 'opacity 0.2s' }} className="edit-icon" />
+      <style>{`
+        div:hover .edit-icon { opacity: 1 !important; }
+      `}</style>
+    </div>
+  );
+}
 
 export default function CandidatesPage() {
   const { id } = useParams<{ id: string }>();
@@ -71,12 +150,16 @@ export default function CandidatesPage() {
       .finally(() => setLoading(false));
   }, [id, filterRec]);
 
-  const updateField = async (candidateId: number, field: string, value: string) => {
+  const updateField = async (candidateId: number, field: string, value: string | number | null) => {
     try {
       await api.patch(`/api/candidates/${candidateId}`, { [field]: value });
       setCandidates((prev) =>
         prev.map((c) => (c.id === candidateId ? { ...c, [field]: value } : c))
       );
+      // Also update detail if drawer is open for this candidate
+      if (detail?.id === candidateId) {
+        setDetail((prev) => prev ? { ...prev, [field]: value } : null);
+      }
     } catch (e: any) {
       message.error(e.response?.data?.detail || '更新失败');
     }
@@ -118,12 +201,69 @@ export default function CandidatesPage() {
   const interviewOptions = ['', '通过', '未通过', '待定'];
 
   const columns = [
-    { title: '#', dataIndex: 'sequence_no', width: 50 },
-    { title: '姓名', dataIndex: 'name', width: 80, render: (t: string) => <span style={{ fontWeight: 500 }}>{t}</span> },
-    { title: '学历', dataIndex: 'education', width: 60 },
-    { title: '学校', dataIndex: 'school', width: 140, ellipsis: true },
-    { title: '专业', dataIndex: 'major', width: 120, ellipsis: true },
-    { title: '年龄', dataIndex: 'age', width: 50 },
+    {
+      title: '#',
+      dataIndex: 'sequence_no',
+      width: 50,
+    },
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      width: 100,
+      render: (v: string, record: Candidate) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <EditableCell value={v} onSave={(val) => updateField(record.id, 'name', val)} style={{ fontWeight: 500 }} />
+          {record.parse_quality === 'poor' && (
+            <Tooltip title="简历解析质量差，建议人工核对">
+              <WarningOutlined style={{ color: '#f59e0b', fontSize: 13 }} />
+            </Tooltip>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: '学历',
+      dataIndex: 'education',
+      width: 80,
+      render: (v: string, record: Candidate) => (
+        <EditableCell
+          value={v}
+          onSave={(val) => updateField(record.id, 'education', val)}
+          type="select"
+          options={educationOptions}
+        />
+      ),
+    },
+    {
+      title: '学校',
+      dataIndex: 'school',
+      width: 150,
+      ellipsis: true,
+      render: (v: string, record: Candidate) => (
+        <EditableCell value={v} onSave={(val) => updateField(record.id, 'school', val)} />
+      ),
+    },
+    {
+      title: '专业',
+      dataIndex: 'major',
+      width: 120,
+      ellipsis: true,
+      render: (v: string, record: Candidate) => (
+        <EditableCell value={v} onSave={(val) => updateField(record.id, 'major', val)} />
+      ),
+    },
+    {
+      title: '年龄',
+      dataIndex: 'age',
+      width: 70,
+      render: (v: number | null, record: Candidate) => (
+        <EditableCell
+          value={v}
+          onSave={(val) => updateField(record.id, 'age', val)}
+          type="number"
+        />
+      ),
+    },
     {
       title: 'AI 评估',
       dataIndex: 'ai_recommendation',
@@ -231,6 +371,7 @@ export default function CandidatesPage() {
           pagination={{ pageSize: 50 }}
           scroll={{ x: 1000 }}
           size="middle"
+          rowClassName={(record) => record?.parse_quality === 'poor' ? 'poor-quality-row' : ''}
         />
       </Card>
 
@@ -243,13 +384,27 @@ export default function CandidatesPage() {
         {detail && (
           <>
             <Descriptions column={2} size="small" bordered style={{ marginBottom: 20 }}>
-              <Descriptions.Item label="姓名">{detail.name}</Descriptions.Item>
-              <Descriptions.Item label="性别">{detail.gender}</Descriptions.Item>
-              <Descriptions.Item label="年龄">{detail.age}</Descriptions.Item>
-              <Descriptions.Item label="电话">{detail.phone}</Descriptions.Item>
-              <Descriptions.Item label="学历">{detail.education}</Descriptions.Item>
-              <Descriptions.Item label="学校">{detail.school}</Descriptions.Item>
-              <Descriptions.Item label="专业" span={2}>{detail.major}</Descriptions.Item>
+              <Descriptions.Item label="姓名">
+                <EditableCell value={detail.name} onSave={(v) => updateField(detail.id, 'name', v)} />
+              </Descriptions.Item>
+              <Descriptions.Item label="性别">
+                <EditableCell value={detail.gender} onSave={(v) => updateField(detail.id, 'gender', v)} />
+              </Descriptions.Item>
+              <Descriptions.Item label="年龄">
+                <EditableCell value={String(detail.age ?? '')} onSave={(v) => updateField(detail.id, 'age', v)} type="number" />
+              </Descriptions.Item>
+              <Descriptions.Item label="电话">
+                <EditableCell value={detail.phone} onSave={(v) => updateField(detail.id, 'phone', v)} />
+              </Descriptions.Item>
+              <Descriptions.Item label="学历">
+                <EditableCell value={detail.education} onSave={(v) => updateField(detail.id, 'education', v)} type="select" options={educationOptions} />
+              </Descriptions.Item>
+              <Descriptions.Item label="学校">
+                <EditableCell value={detail.school} onSave={(v) => updateField(detail.id, 'school', v)} />
+              </Descriptions.Item>
+              <Descriptions.Item label="专业" span={2}>
+                <EditableCell value={detail.major} onSave={(v) => updateField(detail.id, 'major', v)} />
+              </Descriptions.Item>
             </Descriptions>
 
             <Card size="small" title="AI 筛选分析" style={{ marginBottom: 16, borderRadius: 8 }}>
@@ -258,7 +413,16 @@ export default function CandidatesPage() {
                   {detail.ai_recommendation}
                 </Tag>
                 <span>匹配度: <strong>{detail.match_score}</strong>/100</span>
+                {detail.parse_quality === 'poor' && (
+                  <Tag color="warning" icon={<WarningOutlined />}>解析质量差</Tag>
+                )}
               </div>
+              {/* Show AI analysis if available */}
+              {detail.ai_screening_result && (detail.ai_screening_result as AiScreeningResult).analysis && (
+                <p style={{ color: '#666', fontSize: 12, fontStyle: 'italic', marginBottom: 8 }}>
+                  {(detail.ai_screening_result as AiScreeningResult).analysis}
+                </p>
+              )}
               <p style={{ color: '#555', fontSize: 13 }}>{detail.ai_summary}</p>
               {detail.ai_screening_result && (
                 <>
@@ -295,11 +459,20 @@ export default function CandidatesPage() {
               }}
               style={{ padding: 0, color: '#6366f1' }}
             >
-              查看原始简历 PDF →
+              查看原始简历 PDF &rarr;
             </Button>
           </>
         )}
       </Drawer>
+
+      <style>{`
+        .poor-quality-row {
+          background: #fffbeb !important;
+        }
+        .poor-quality-row:hover > td {
+          background: #fef3c7 !important;
+        }
+      `}</style>
     </>
   );
 }

@@ -18,17 +18,20 @@ if grep -q '^SECRET_KEY=change-me' .env; then
     echo "✅ 已自动生成 SECRET_KEY"
 fi
 
-# 3. 安装依赖
+# 3. 设置 Python 环境
+PYTHON="$(command -v python3)"
 if [ ! -d ".venv" ]; then
-    echo "📦 安装依赖..."
+    echo "📦 创建虚拟环境并安装依赖..."
+    "$PYTHON" -m venv .venv
+    source .venv/bin/activate
     pip install -r requirements.txt -q
 else
-    source .venv/bin/activate 2>/dev/null || true
+    source .venv/bin/activate
 fi
 
 # 4. 初始化数据库
 echo "🗄️  初始化数据库..."
-python3 seed.py
+python seed.py
 
 # 5. 启动服务
 echo "🚀 启动后端服务 http://localhost:8000"
