@@ -4,7 +4,7 @@ from typing import List
 from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse
-from app.auth import get_current_user, hash_password
+from app.auth import get_current_user, require_role, hash_password
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -13,7 +13,7 @@ def list_users(db: Session = Depends(get_db), user: User = Depends(get_current_u
     return db.query(User).order_by(User.created_at).all()
 
 @router.post("", response_model=UserResponse)
-def create_user(body: UserCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def create_user(body: UserCreate, db: Session = Depends(get_db), user: User = Depends(require_role("manager"))):
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status_code=400, detail="Username already exists")
     new_user = User(
@@ -28,7 +28,7 @@ def create_user(body: UserCreate, db: Session = Depends(get_db), user: User = De
     return new_user
 
 @router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(require_role("manager"))):
     target = db.query(User).filter(User.id == user_id).first()
     if not target:
         raise HTTPException(status_code=404, detail="User not found")

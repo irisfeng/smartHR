@@ -73,6 +73,7 @@ async def process_batch(batch_id: int, db: Session):
 
         # -- Phase 2: Concurrent AI screening with semaphore --
         sem = asyncio.Semaphore(AI_CONCURRENCY)
+        db_lock = asyncio.Lock()  # serialize DB writes to avoid session race conditions
 
         async def screen_one(candidate: Candidate):
             async with sem:
@@ -82,15 +83,20 @@ async def process_batch(batch_id: int, db: Session):
                         jd,
                         shared_client,
                     )
-                    _apply_ai_result(candidate, result)
-                    candidate.status = "completed"
                 except Exception as e:
                     logger.error(f"AI screening failed for candidate {candidate.id}: {e}")
-                    candidate.status = "failed"
-                    candidate.error_message = str(e)
-                # Incremental progress update per candidate
-                batch.processed_count = (batch.processed_count or 0) + 1
-                db.commit()
+                    async with db_lock:
+                        candidate.status = "failed"
+                        candidate.error_message = str(e)
+                        batch.processed_count = (batch.processed_count or 0) + 1
+                        db.commit()
+                    return
+
+                async with db_lock:
+                    _apply_ai_result(candidate, result)
+                    candidate.status = "completed"
+                    batch.processed_count = (batch.processed_count or 0) + 1
+                    db.commit()
 
         await asyncio.gather(*[screen_one(c) for c in candidates])
 

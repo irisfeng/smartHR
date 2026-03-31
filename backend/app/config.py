@@ -1,4 +1,7 @@
+import logging
 from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     secret_key: str = "change-me"
@@ -19,3 +22,9 @@ class Settings(BaseSettings):
         env_file = ".env"
 
 settings = Settings()
+
+if settings.secret_key == "change-me":
+    logger.warning(
+        "SECRET_KEY is using the default value 'change-me'. "
+        "Set a strong SECRET_KEY in .env for production use."
+    )

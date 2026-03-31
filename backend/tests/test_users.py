@@ -102,3 +102,20 @@ def test_delete_self(client, manager_user, manager_headers):
 def test_list_users_unauthenticated(client):
     resp = client.get("/api/users")
     assert resp.status_code == 403
+
+
+def test_create_user_as_hr_forbidden(client, hr_headers):
+    """HR users cannot create new users — only managers can."""
+    resp = client.post("/api/users", headers=hr_headers, json={
+        "username": "sneaky_admin",
+        "password": "securepass",
+        "role": "manager",
+        "display_name": "Privilege Escalation",
+    })
+    assert resp.status_code == 403
+
+
+def test_delete_user_as_hr_forbidden(client, hr_user, manager_user, hr_headers):
+    """HR users cannot delete users — only managers can."""
+    resp = client.delete(f"/api/users/{manager_user.id}", headers=hr_headers)
+    assert resp.status_code == 403

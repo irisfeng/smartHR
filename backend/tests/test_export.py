@@ -162,3 +162,14 @@ def test_export_empty_position(client, db, hr_user, hr_headers, monkeypatch):
         assert ws.cell(row=2, column=1).value is None
     finally:
         os.unlink(tmp.name)
+
+
+def test_export_as_manager_forbidden(client, db, manager_user, manager_headers, monkeypatch):
+    """Managers cannot export — only HR can (contains sensitive PII)."""
+    monkeypatch.setattr(
+        "app.services.export_service.TEMPLATE_PATH",
+        "/nonexistent/path/template.xlsx",
+    )
+    pos = _make_position(db, manager_user)
+    resp = client.get(f"/api/positions/{pos.id}/export", headers=manager_headers)
+    assert resp.status_code == 403

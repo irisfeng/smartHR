@@ -68,13 +68,17 @@ EMPTY_RESULT = {
 }
 
 
+class AIServiceNotConfiguredError(Exception):
+    pass
+
+
 async def screen_resume(
     resume_text: str,
     jd: str,
     client: Optional[httpx.AsyncClient] = None,
 ) -> dict:
     if not settings.ai_api_key:
-        return dict(EMPTY_RESULT)
+        raise AIServiceNotConfiguredError("AI_API_KEY is not configured")
 
     prompt = SCREENING_PROMPT.format(jd=jd, resume_text=resume_text)
 
