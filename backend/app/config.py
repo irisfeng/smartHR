@@ -4,10 +4,16 @@ from pydantic_settings import BaseSettings
 logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
+    env: str = "dev"  # "dev" or "prod"
+
     secret_key: str = "change-me"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+
+    database_url: str = "sqlite:///smarthr.db"
+
+    allowed_origins: str = "http://localhost:5173"
 
     mineru_api_key: str = ""
 

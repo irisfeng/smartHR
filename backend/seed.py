@@ -5,25 +5,32 @@ from app.auth import hash_password
 Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
-if not db.query(User).filter(User.username == "admin").first():
-    admin = User(
-        username="admin",
-        password_hash=hash_password("admin123"),
-        role="manager",
-        display_name="管理员",
-    )
-    db.add(admin)
+USERS = [
+    ("hr",            "hr",      "人事",  "HR专员"),
+    ("mgr_delivery",  "manager", "交付",  "交付经理"),
+    ("mgr_rd",        "manager", "产研",  "产研经理"),
+    ("mgr_marketing", "manager", "市场",  "市场经理"),
+    ("mgr_ops1",      "manager", "运营1", "运营经理1"),
+    ("mgr_ops2",      "manager", "运营2", "运营经理2"),
+    ("mgr_sales1",    "manager", "销售1", "销售经理1"),
+    ("mgr_sales2",    "manager", "销售2", "销售经理2"),
+    ("mgr_finance",   "manager", "财务",  "财务经理"),
+    ("mgr_hr",        "manager", "人事",  "人事经理"),
+]
 
-    hr = User(
-        username="hr",
-        password_hash=hash_password("hr123"),
-        role="hr",
-        display_name="HR专员",
-    )
-    db.add(hr)
-    db.commit()
-    print("Seeded admin and hr users")
-else:
-    print("Users already exist")
+DEFAULT_PASSWORD = "Smart2026!"
 
+created = 0
+for username, role, _dept, display_name in USERS:
+    if not db.query(User).filter(User.username == username).first():
+        db.add(User(
+            username=username,
+            password_hash=hash_password(DEFAULT_PASSWORD),
+            role=role,
+            display_name=display_name,
+        ))
+        created += 1
+
+db.commit()
+print(f"Seeded {created} new users ({len(USERS)} total defined)")
 db.close()
