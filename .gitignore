@@ -17,3 +17,17 @@ uploads/
 
 # Superpowers
 .superpowers/
+
+# Backend specific
+backend/.env
+backend/smarthr.db
+backend/uploads/
+backend/__pycache__/
+backend/.venv/
+
+# Frontend specific
+frontend/node_modules/
+frontend/dist/
+
+# Deployment data
+data/
