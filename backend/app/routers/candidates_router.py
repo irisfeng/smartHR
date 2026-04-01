@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app.models import User, Candidate
+from app.models import User, Candidate, UploadBatch
 from app.schemas import CandidateResponse, CandidateDetailResponse, CandidateUpdate
 from app.auth import get_current_user
 from app.services.file_service import validate_resume_path
@@ -59,6 +59,30 @@ def update_candidate(
     db.commit()
     db.refresh(candidate)
     return candidate
+
+@router.delete("/api/positions/{position_id}/candidates")
+def delete_all_candidates(
+    position_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    count = db.query(Candidate).filter(Candidate.job_position_id == position_id).delete()
+    db.query(UploadBatch).filter(UploadBatch.job_position_id == position_id).delete()
+    db.commit()
+    return {"deleted": count}
+
+@router.delete("/api/candidates/{candidate_id}")
+def delete_candidate(
+    candidate_id: int,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    candidate = db.query(Candidate).filter(Candidate.id == candidate_id).first()
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    db.delete(candidate)
+    db.commit()
+    return {"detail": "Deleted"}
 
 @router.get("/api/candidates/{candidate_id}/resume")
 def get_resume(

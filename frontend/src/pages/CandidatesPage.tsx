@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card, Table, Tag, Select, Button, Space, Progress, Drawer, Descriptions,
-  Input, InputNumber, Tooltip, message,
+  Input, InputNumber, Tooltip, Popconfirm, message,
 } from 'antd';
 import {
   ArrowLeftOutlined, DownloadOutlined, UploadOutlined,
-  EditOutlined, WarningOutlined,
+  EditOutlined, WarningOutlined, DeleteOutlined,
 } from '@ant-design/icons';
 import api from '../api';
 
@@ -203,8 +203,8 @@ export default function CandidatesPage() {
   const columns = [
     {
       title: '#',
-      dataIndex: 'sequence_no',
       width: 50,
+      render: (_: unknown, __: Candidate, index: number) => index + 1,
     },
     {
       title: '姓名',
@@ -357,6 +357,9 @@ export default function CandidatesPage() {
             />
           </Space>
           <Space>
+            <Popconfirm title="确定清空所有候选人？" onConfirm={async () => { await api.delete(`/api/positions/${id}/candidates`); setCandidates([]); message.success('已清空'); }}>
+              <Button icon={<DeleteOutlined />} danger disabled={candidates.length === 0}>清空候选人</Button>
+            </Popconfirm>
             <Button icon={<UploadOutlined />} onClick={() => navigate(`/positions/${id}/upload`)}>上传简历</Button>
             <Button type="primary" icon={<DownloadOutlined />} onClick={exportExcel} style={{ background: '#6366f1' }}>
               导出 Excel

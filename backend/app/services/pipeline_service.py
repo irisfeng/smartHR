@@ -65,9 +65,10 @@ async def process_batch(batch_id: int, db: Session):
             logger.error(f"MinerU batch parse failed: {e}")
             parsed_map = {fp: "" for fp in file_paths}
 
-        # Save parsed text
+        # Save parsed text (strip NUL bytes — PostgreSQL rejects 0x00 in text columns)
         for c in candidates:
-            c.parsed_text = parsed_map.get(c.resume_file_path, "")
+            raw = parsed_map.get(c.resume_file_path, "")
+            c.parsed_text = raw.replace("\x00", "") if raw else ""
             c.status = "screening"
         db.commit()
 
