@@ -11,15 +11,20 @@ from app.config import settings
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-@router.post("/login", response_model=TokenResponse)
+DEFAULT_PASSWORD = "Smart2026!"
+
+@router.post("/login")
 def login(body: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == body.username).first()
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return TokenResponse(
-        access_token=create_access_token(user.id, user.role),
-        refresh_token=create_refresh_token(user.id),
-    )
+    must_change = verify_password(DEFAULT_PASSWORD, user.password_hash)
+    return {
+        "access_token": create_access_token(user.id, user.role),
+        "refresh_token": create_refresh_token(user.id),
+        "token_type": "bearer",
+        "must_change_password": must_change,
+    }
 
 @router.post("/refresh", response_model=TokenResponse)
 def refresh(body: RefreshRequest, db: Session = Depends(get_db)):

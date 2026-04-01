@@ -1,6 +1,19 @@
-from pydantic import BaseModel, Field
+import re
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
+
+
+def validate_password_complexity(v: str) -> str:
+    if not re.search(r'[a-z]', v):
+        raise ValueError('Must contain a lowercase letter')
+    if not re.search(r'[A-Z]', v):
+        raise ValueError('Must contain an uppercase letter')
+    if not re.search(r'[0-9]', v):
+        raise ValueError('Must contain a digit')
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:,.<>?]', v):
+        raise ValueError('Must contain a special character')
+    return v
 
 # Auth
 class LoginRequest(BaseModel):
@@ -17,7 +30,12 @@ class RefreshRequest(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     old_password: str
-    new_password: str = Field(..., min_length=6, max_length=128)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator('new_password')
+    @classmethod
+    def check_complexity(cls, v: str) -> str:
+        return validate_password_complexity(v)
 
 class UserResponse(BaseModel):
     id: int

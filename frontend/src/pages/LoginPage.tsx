@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Form, Input, Button, message } from 'antd';
+import { Card, Form, Input, Button, Modal, message } from 'antd';
 import api from '../api';
 import { useAuthStore } from '../store/authStore';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [pwdForm] = Form.useForm();
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
+
+  const goToDashboard = async () => {
+    const me = await api.get('/api/auth/me');
+    setUser(me.data);
+    navigate('/');
+  };
 
   const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);
@@ -15,13 +25,43 @@ export default function LoginPage() {
       const res = await api.post('/api/auth/login', values);
       localStorage.setItem('access_token', res.data.access_token);
       localStorage.setItem('refresh_token', res.data.refresh_token);
-      const me = await api.get('/api/auth/me');
-      setUser(me.data);
-      navigate('/');
+      if (res.data.must_change_password) {
+        setLoginPassword(values.password);
+        setPwdOpen(true);
+      } else {
+        await goToDashboard();
+      }
     } catch {
       message.error('用户名或密码错误');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    const values = await pwdForm.validateFields();
+    if (values.new_password !== values.confirm_password) {
+      message.error('两次密码不一致');
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      await api.post('/api/auth/change-password', {
+        old_password: loginPassword,
+        new_password: values.new_password,
+      });
+      message.success('密码修改成功');
+      setPwdOpen(false);
+      await goToDashboard();
+    } catch (e: any) {
+      const detail = e.response?.data?.detail;
+      if (Array.isArray(detail)) {
+        message.error(detail.map((d: any) => d.msg).join('; '));
+      } else {
+        message.error(detail || '修改失败');
+      }
+    } finally {
+      setPwdLoading(false);
     }
   };
 
@@ -57,6 +97,29 @@ export default function LoginPage() {
           </Button>
         </Form>
       </Card>
+      <Modal
+        title="首次登录请修改密码"
+        open={pwdOpen}
+        onOk={handleChangePassword}
+        closable={false}
+        maskClosable={false}
+        keyboard={false}
+        confirmLoading={pwdLoading}
+        okText="确认修改"
+        cancelButtonProps={{ style: { display: 'none' } }}
+      >
+        <p style={{ color: '#71717a', fontSize: 13, marginBottom: 16 }}>
+          密码要求：至少8位，包含大小写字母、数字和特殊字符
+        </p>
+        <Form form={pwdForm} layout="vertical">
+          <Form.Item name="new_password" label="新密码" rules={[{ required: true, message: '请输入新密码' }, { min: 8, message: '密码至少8位' }]}>
+            <Input.Password />
+          </Form.Item>
+          <Form.Item name="confirm_password" label="确认新密码" rules={[{ required: true, message: '请再次输入新密码' }]}>
+            <Input.Password />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
