@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, Modal, Form, Input, message } from 'antd';
 import {
   FileTextOutlined,
   SettingOutlined,
@@ -24,6 +24,32 @@ export default function AppLayout() {
       });
     }
   }, []);
+
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [pwdForm] = Form.useForm();
+  const [pwdLoading, setPwdLoading] = useState(false);
+
+  const handleChangePassword = async () => {
+    const values = await pwdForm.validateFields();
+    if (values.new_password !== values.confirm_password) {
+      message.error('Two passwords do not match');
+      return;
+    }
+    setPwdLoading(true);
+    try {
+      await api.post('/api/auth/change-password', {
+        old_password: values.old_password,
+        new_password: values.new_password,
+      });
+      message.success('Password changed successfully');
+      setPwdOpen(false);
+      pwdForm.resetFields();
+    } catch (e: any) {
+      message.error(e.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setPwdLoading(false);
+    }
+  };
 
   const selectedKey = '/' + location.pathname.split('/')[1];
 
@@ -71,8 +97,22 @@ export default function AppLayout() {
         }}>
           <span style={{ color: '#71717a', fontSize: 13 }}>
             {user?.display_name}
+            <a onClick={() => setPwdOpen(true)} style={{ marginLeft: 12, color: '#6366f1' }}>修改密码</a>
             <a onClick={() => { logout(); navigate('/login'); }} style={{ marginLeft: 12, color: '#6366f1' }}>退出</a>
           </span>
+          <Modal title="修改密码" open={pwdOpen} onOk={handleChangePassword} onCancel={() => { setPwdOpen(false); pwdForm.resetFields(); }} confirmLoading={pwdLoading} okText="确定" cancelText="取消">
+            <Form form={pwdForm} layout="vertical" style={{ marginTop: 16 }}>
+              <Form.Item name="old_password" label="原密码" rules={[{ required: true, message: '请输入原密码' }]}>
+                <Input.Password />
+              </Form.Item>
+              <Form.Item name="new_password" label="新密码" rules={[{ required: true, message: '请输入新密码' }, { min: 6, message: '密码至少6位' }]}>
+                <Input.Password />
+              </Form.Item>
+              <Form.Item name="confirm_password" label="确认新密码" rules={[{ required: true, message: '请再次输入新密码' }]}>
+                <Input.Password />
+              </Form.Item>
+            </Form>
+          </Modal>
         </Header>
         <Content style={{ padding: 28, background: '#f8fafc' }}>
           <Outlet />

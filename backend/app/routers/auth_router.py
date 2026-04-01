@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from app.database import get_db
 from app.models import User
-from app.schemas import LoginRequest, TokenResponse, RefreshRequest, UserResponse
+from app.schemas import LoginRequest, TokenResponse, RefreshRequest, UserResponse, ChangePasswordRequest
 from app.auth import (
-    verify_password, create_access_token, create_refresh_token, get_current_user,
+    verify_password, hash_password, create_access_token, create_refresh_token, get_current_user,
 )
 from app.config import settings
 
@@ -37,6 +37,14 @@ def refresh(body: RefreshRequest, db: Session = Depends(get_db)):
         access_token=create_access_token(user.id, user.role),
         refresh_token=create_refresh_token(user.id),
     )
+
+@router.post("/change-password")
+def change_password(body: ChangePasswordRequest, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not verify_password(body.old_password, user.password_hash):
+        raise HTTPException(status_code=400, detail="Old password is incorrect")
+    user.password_hash = hash_password(body.new_password)
+    db.commit()
+    return {"detail": "Password changed"}
 
 @router.get("/me", response_model=UserResponse)
 def me(user: User = Depends(get_current_user)):
