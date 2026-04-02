@@ -16,6 +16,7 @@ USERS = [
     ("mgr_sales2",    "manager", "销售2", "销售经理2"),
     ("mgr_finance",   "manager", "财务",  "财务经理"),
     ("mgr_hr",        "manager", "人事",  "人事经理"),
+    ("mgr_admin",     "manager", "综合办","综合办经理"),
 ]
 
 DEFAULT_PASSWORD = "Smart2026!"
