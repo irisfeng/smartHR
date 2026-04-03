@@ -8,6 +8,9 @@ from app.auth import get_current_user, require_role
 from app.services.file_service import save_uploaded_file, extract_zip, validate_file
 from app.services.pipeline_service import process_batch
 
+# Managers who are allowed to upload resumes (in addition to HR)
+UPLOAD_ALLOWED_MANAGERS = {"mgr_delivery", "mgr_rd"}
+
 router = APIRouter(prefix="/api", tags=["upload"])
 
 async def run_pipeline_background(batch_id: int):
@@ -23,8 +26,10 @@ async def upload_resumes(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    user: User = Depends(require_role("hr")),
+    user: User = Depends(get_current_user),
 ):
+    if user.role != "hr" and user.username not in UPLOAD_ALLOWED_MANAGERS:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
     position = db.query(JobPosition).filter(JobPosition.id == position_id).first()
     if not position:
         raise HTTPException(status_code=404, detail="Position not found")

@@ -94,7 +94,7 @@ export default function PositionsPage() {
           <a onClick={() => navigate(`/positions/${record.id}/candidates`)}>
             <TeamOutlined /> 候选人
           </a>
-          {user?.role === 'hr' && (
+          {(user?.role === 'hr' || user?.username === 'mgr_delivery' || user?.username === 'mgr_rd') && (
             <a onClick={() => navigate(`/positions/${record.id}/upload`)}>
               <UploadOutlined /> 上传
             </a>
