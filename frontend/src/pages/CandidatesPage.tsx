@@ -141,13 +141,16 @@ function EditableCell({
   );
 }
 
-// Masked cell for sensitive data (e.g. id_number) — click eye to reveal, click text to edit
+// Masked cell for sensitive data — click eye to reveal, click text to edit
+// maskType: 'id' = show first4/last4, 'phone' = show first3/last4
 function MaskedCell({
   value,
   onSave,
+  maskType = 'id',
 }: {
   value: string | null;
   onSave: (val: string | number | null) => void;
+  maskType?: 'id' | 'phone';
 }) {
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -168,7 +171,12 @@ function MaskedCell({
     );
   }
 
-  const masked = value ? value.replace(/^(.{4})(.+)(.{4})$/, (_, a, m, b) => a + '*'.repeat(m.length) + b) : '—';
+  const maskValue = (v: string) => {
+    if (maskType === 'phone' && v.length >= 7) {
+      return v.slice(0, 3) + '****' + v.slice(-4);
+    }
+    return v.replace(/^(.{4})(.+)(.{4})$/, (_, a, m, b) => a + '*'.repeat(m.length) + b);
+  };
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -176,7 +184,7 @@ function MaskedCell({
         style={{ cursor: 'pointer', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12 }}
         onClick={() => setEditing(true)}
       >
-        {value ? (visible ? value : masked) : '—'}
+        {value ? (visible ? value : maskValue(value)) : '—'}
       </span>
       {value && (
         <span style={{ cursor: 'pointer', color: '#a1a1aa', fontSize: 12 }} onClick={() => setVisible(!visible)}>
@@ -351,9 +359,9 @@ export default function CandidatesPage() {
     {
       title: '电话',
       dataIndex: 'phone',
-      width: 120,
+      width: 140,
       render: (v: string, record: Candidate) => (
-        <EditableCell value={v} onSave={(val) => updateField(record.id, 'phone', val)} />
+        <MaskedCell value={v} onSave={(val) => updateField(record.id, 'phone', val)} maskType="phone" />
       ),
     },
     {
