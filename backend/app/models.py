@@ -51,6 +51,7 @@ class Candidate(Base):
     interview_time = Column(String(20), default="")
     interview_note = Column(Text, default="")
     first_interview_result = Column(String(50), default="")
+    evaluation_result = Column(String(50), default="")
     first_interview_note = Column(Text, default="")
     second_interview_invite = Column(String(50), default="")
     second_interview_result = Column(String(50), default="")

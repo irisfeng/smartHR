@@ -78,6 +78,7 @@ class PositionResponse(BaseModel):
 class CandidateUpdate(BaseModel):
     # Basic info (editable)
     name: Optional[str] = None
+    id_number: Optional[str] = None
     gender: Optional[str] = None
     age: Optional[int] = None
     phone: Optional[str] = None
@@ -94,6 +95,7 @@ class CandidateUpdate(BaseModel):
     interview_time: Optional[str] = None
     interview_note: Optional[str] = None
     first_interview_result: Optional[str] = None
+    evaluation_result: Optional[str] = None
     first_interview_note: Optional[str] = None
     second_interview_invite: Optional[str] = None
     second_interview_result: Optional[str] = None
@@ -105,6 +107,7 @@ class CandidateResponse(BaseModel):
     job_position_id: int
     sequence_no: Optional[int] = None
     name: Optional[str] = ""
+    id_number: Optional[str] = ""
     gender: Optional[str] = ""
     age: Optional[int] = None
     phone: Optional[str] = ""
@@ -117,6 +120,7 @@ class CandidateResponse(BaseModel):
     ai_summary: Optional[str] = ""
     screening_result: Optional[str] = ""
     first_interview_result: Optional[str] = ""
+    evaluation_result: Optional[str] = ""
     second_interview_result: Optional[str] = ""
     status: Optional[str] = "pending"
     recommend_date: Optional[str] = ""

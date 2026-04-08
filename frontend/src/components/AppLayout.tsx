@@ -61,7 +61,7 @@ export default function AppLayout() {
   const menuItems = [
     { key: '/positions', icon: <FileTextOutlined />, label: '职位管理' },
     ...(user?.role === 'manager' ? [] : [{ key: '/candidates', icon: <TeamOutlined />, label: '候选人管理' }]),
-    { key: '/users', icon: <SettingOutlined />, label: '用户管理' },
+    ...(user?.role === 'manager' ? [{ key: '/users', icon: <SettingOutlined />, label: '用户管理' }] : []),
   ];
 
   return (

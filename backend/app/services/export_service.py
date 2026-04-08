@@ -25,6 +25,7 @@ COLUMN_MAP = [
     ("interview_time", "面试时间"),
     ("interview_note", "备注"),
     ("first_interview_result", "一面结果"),
+    ("evaluation_result", "评估结果"),
     ("first_interview_note", "备注"),
     ("second_interview_invite", "二面邀约"),
     ("second_interview_result", "二面结果"),
