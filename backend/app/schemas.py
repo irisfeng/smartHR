@@ -163,5 +163,19 @@ class UploadBatchResponse(BaseModel):
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=2, max_length=32)
     password: str = Field(..., min_length=6, max_length=128)
-    role: str = Field(..., pattern="^(hr|manager)$")
+    role: str = Field(..., pattern="^(hr|manager|admin)$")
     display_name: str = Field(..., min_length=1, max_length=32)
+
+
+class UserUpdate(BaseModel):
+    display_name: Optional[str] = Field(None, min_length=1, max_length=32)
+    role: Optional[str] = Field(None, pattern="^(hr|manager|admin)$")
+
+
+class AdminResetPasswordRequest(BaseModel):
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+    @field_validator('new_password')
+    @classmethod
+    def check_complexity(cls, v: str) -> str:
+        return validate_password_complexity(v)
