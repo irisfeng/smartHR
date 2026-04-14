@@ -23,7 +23,7 @@ def ensure_column():
         print("[OK] column users.must_change_password already present")
         return
     with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0 NOT NULL"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT FALSE NOT NULL"))
         conn.commit()
     print("[ADDED] column users.must_change_password")
 
