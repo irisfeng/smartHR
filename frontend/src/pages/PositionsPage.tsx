@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Table, Button, Tag, Input, Modal, Form, Space, Select, message } from 'antd';
-import { PlusOutlined, SearchOutlined, UploadOutlined, TeamOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Tag, Input, Modal, Form, Space, Select, Drawer, Descriptions, message } from 'antd';
+import { PlusOutlined, SearchOutlined, UploadOutlined, TeamOutlined, EyeOutlined } from '@ant-design/icons';
 import api from '../api';
 import { useAuthStore } from '../store/authStore';
 
@@ -22,6 +22,7 @@ export default function PositionsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [detailDrawer, setDetailDrawer] = useState<Position | null>(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
@@ -91,6 +92,9 @@ export default function PositionsPage() {
       key: 'actions',
       render: (_: unknown, record: Position) => (
         <Space size="small">
+          <a onClick={() => setDetailDrawer(record)}>
+            <EyeOutlined /> 详情
+          </a>
           <a onClick={() => navigate(`/positions/${record.id}/candidates`)}>
             <TeamOutlined /> 候选人
           </a>
@@ -136,6 +140,31 @@ export default function PositionsPage() {
           pagination={false}
         />
       </Card>
+
+      <Drawer
+        title={detailDrawer?.title || '职位详情'}
+        open={!!detailDrawer}
+        onClose={() => setDetailDrawer(null)}
+        width={520}
+      >
+        {detailDrawer && (
+          <Descriptions column={1} bordered size="small">
+            <Descriptions.Item label="职位名称">{detailDrawer.title}</Descriptions.Item>
+            <Descriptions.Item label="部门">{detailDrawer.department}</Descriptions.Item>
+            <Descriptions.Item label="状态">
+              <Tag color={detailDrawer.status === 'open' ? 'purple' : 'default'} style={{ borderRadius: 20 }}>
+                {detailDrawer.status === 'open' ? '招聘中' : '已关闭'}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="职位描述 (JD)">
+              <div style={{ whiteSpace: 'pre-wrap' }}>{detailDrawer.description || '—'}</div>
+            </Descriptions.Item>
+            <Descriptions.Item label="关键要求">
+              <div style={{ whiteSpace: 'pre-wrap' }}>{detailDrawer.requirements || '—'}</div>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+      </Drawer>
 
       <Modal
         title={editingId ? '编辑职位' : '新建职位'}
