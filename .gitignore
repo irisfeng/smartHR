@@ -31,3 +31,9 @@ frontend/dist/
 
 # Deployment data
 data/
+
+# macOS
+.DS_Store
+
+# Local working notes (not shared)
+Memory/
