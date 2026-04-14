@@ -43,6 +43,7 @@ class UserResponse(BaseModel):
     role: str
     display_name: str
     created_at: datetime
+    must_change_password: bool = False
     class Config:
         from_attributes = True
 

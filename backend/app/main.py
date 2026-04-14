@@ -10,6 +10,7 @@ Base.metadata.create_all(bind=engine)
 # Lightweight migration: add columns that don't exist yet
 _NEW_COLUMNS = [
     ("candidates", "evaluation_result", "VARCHAR(50) DEFAULT ''"),
+    ("users", "must_change_password", "BOOLEAN DEFAULT 0 NOT NULL"),
 ]
 with engine.connect() as conn:
     insp = inspect(engine)

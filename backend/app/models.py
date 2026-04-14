@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, JSON, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -11,6 +11,7 @@ class User(Base):
     role = Column(String(20), nullable=False)  # "hr" or "manager"
     display_name = Column(String(100), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    must_change_password = Column(Boolean, default=False, nullable=False)
 
 class JobPosition(Base):
     __tablename__ = "job_positions"
