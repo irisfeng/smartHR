@@ -27,6 +27,13 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     if (error.response?.status === 401 && !original._retry) {
+      // Don't trigger refresh for login/refresh endpoints themselves —
+      // their 401 means "bad credentials" / "bad refresh token", not
+      // "access token expired". Let the caller handle the error.
+      const url = original.url ?? '';
+      if (url.endsWith('/api/auth/login') || url.endsWith('/api/auth/refresh')) {
+        return Promise.reject(error);
+      }
       original._retry = true;
       if (!refreshPromise) {
         const refreshToken = localStorage.getItem('refresh_token');

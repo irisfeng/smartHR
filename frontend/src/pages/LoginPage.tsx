@@ -31,8 +31,16 @@ export default function LoginPage() {
       } else {
         await goToDashboard();
       }
-    } catch {
-      message.error('用户名或密码错误');
+    } catch (e: any) {
+      const status = e?.response?.status;
+      if (status === 401) {
+        message.error('用户名或密码错误');
+      } else if (status) {
+        const detail = e?.response?.data?.detail;
+        message.error(`登录失败（${status}）${typeof detail === 'string' ? '：' + detail : ''}`);
+      } else {
+        message.error('网络异常，请检查后端服务是否运行');
+      }
     } finally {
       setLoading(false);
     }
