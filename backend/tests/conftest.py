@@ -111,3 +111,27 @@ def manager_headers(manager_token) -> dict:
 def hr_headers(hr_token) -> dict:
     """Return auth headers for HR user."""
     return {"Authorization": f"Bearer {hr_token}"}
+
+
+@pytest.fixture
+def admin_user(db) -> User:
+    user = User(
+        username="test_admin",
+        password_hash=hash_password("password123"),
+        role="admin",
+        display_name="Test Admin",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@pytest.fixture
+def admin_token(admin_user) -> str:
+    return create_access_token(admin_user.id, admin_user.role)
+
+
+@pytest.fixture
+def admin_headers(admin_token) -> dict:
+    return {"Authorization": f"Bearer {admin_token}"}
