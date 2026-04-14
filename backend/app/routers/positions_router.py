@@ -4,12 +4,12 @@ from typing import List
 from app.database import get_db
 from app.models import User, JobPosition, Candidate
 from app.schemas import PositionCreate, PositionUpdate, PositionResponse
-from app.auth import get_current_user, require_role
+from app.auth import get_current_active_user, require_role
 
 router = APIRouter(prefix="/api/positions", tags=["positions"])
 
 @router.get("", response_model=List[PositionResponse])
-def list_positions(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def list_positions(db: Session = Depends(get_db), user: User = Depends(get_current_active_user)):
     positions = db.query(JobPosition).order_by(JobPosition.created_at.desc()).all()
     result = []
     for p in positions:
@@ -34,7 +34,7 @@ def create_position(
     return resp
 
 @router.get("/{position_id}", response_model=PositionResponse)
-def get_position(position_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def get_position(position_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_active_user)):
     position = db.query(JobPosition).filter(JobPosition.id == position_id).first()
     if not position:
         raise HTTPException(status_code=404, detail="Position not found")

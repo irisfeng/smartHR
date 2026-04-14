@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db, SessionLocal
 from app.models import User, JobPosition, Candidate, UploadBatch
 from app.schemas import UploadBatchResponse
-from app.auth import get_current_user, require_role
+from app.auth import get_current_active_user, require_role
 from app.services.file_service import save_uploaded_file, extract_zip, validate_file
 from app.services.pipeline_service import process_batch
 
@@ -66,7 +66,7 @@ async def upload_resumes(
 def get_batch_status(
     batch_id: int,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_active_user),
 ):
     batch = db.query(UploadBatch).filter(UploadBatch.id == batch_id).first()
     if not batch:

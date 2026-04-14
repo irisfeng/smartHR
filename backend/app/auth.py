@@ -51,8 +51,23 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+def get_current_active_user(user: User = Depends(get_current_user)) -> User:
+    """Same as get_current_user but blocks users flagged for forced password change.
+
+    Apply to all business routes. Auth routes (/api/auth/*) and the users
+    router keep get_current_user / require_role so admins can manage accounts
+    even while their own flag is set.
+    """
+    if user.must_change_password:
+        raise HTTPException(
+            status_code=428,
+            detail="Password change required",
+        )
+    return user
+
+
 def require_role(*roles: str):
-    def dependency(user: User = Depends(get_current_user)):
+    def dependency(user: User = Depends(get_current_active_user)):
         if user.role not in roles:
             raise HTTPException(status_code=403, detail="Insufficient permissions")
         return user
