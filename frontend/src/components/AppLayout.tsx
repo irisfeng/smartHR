@@ -58,11 +58,23 @@ export default function AppLayout() {
 
   const selectedKey = '/' + location.pathname.split('/')[1];
 
-  const menuItems = [
-    { key: '/positions', icon: <FileTextOutlined />, label: '职位管理' },
-    ...(user?.role === 'manager' ? [] : [{ key: '/candidates', icon: <TeamOutlined />, label: '候选人管理' }]),
-    ...(user?.role === 'manager' ? [{ key: '/users', icon: <SettingOutlined />, label: '用户管理' }] : []),
-  ];
+  const role = user?.role;
+
+  let menuItems: { key: string; icon: JSX.Element; label: string }[];
+  if (role === 'admin') {
+    menuItems = [{ key: '/users', icon: <SettingOutlined />, label: '用户管理' }];
+  } else {
+    menuItems = [
+      { key: '/positions', icon: <FileTextOutlined />, label: '职位管理' },
+      { key: '/candidates', icon: <TeamOutlined />, label: '候选人管理' },
+    ];
+  }
+
+  useEffect(() => {
+    if (user?.role === 'admin' && location.pathname !== '/users') {
+      navigate('/users', { replace: true });
+    }
+  }, [user, location.pathname, navigate]);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
