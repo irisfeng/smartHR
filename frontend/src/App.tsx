@@ -10,6 +10,7 @@ import UploadPage from './pages/UploadPage';
 import CandidatesPage from './pages/CandidatesPage';
 import UsersPage from './pages/UsersPage';
 import CandidateListPage from './pages/CandidateListPage';
+import ForceChangePasswordPage from './pages/ForceChangePasswordPage';
 
 const theme = {
   token: {
@@ -26,6 +27,7 @@ export default function App() {
         <ErrorBoundary>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/force-change-password" element={<ForceChangePasswordPage />} />
             <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/positions" replace />} />
               <Route path="positions" element={<PositionsPage />} />

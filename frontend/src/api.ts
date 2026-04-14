@@ -20,6 +20,12 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config as RetryableConfig;
+    if (error.response?.status === 428) {
+      if (window.location.pathname !== '/force-change-password') {
+        window.location.href = '/force-change-password';
+      }
+      return Promise.reject(error);
+    }
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
       if (!refreshPromise) {
