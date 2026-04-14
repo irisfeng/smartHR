@@ -5,6 +5,7 @@ interface User {
   username: string;
   role: string;
   display_name: string;
+  must_change_password: boolean;
 }
 
 interface AuthState {
