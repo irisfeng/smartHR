@@ -23,7 +23,7 @@ def list_positions(db: Session = Depends(get_db), user: User = Depends(get_curre
 def create_position(
     body: PositionCreate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_role("manager")),
+    user: User = Depends(require_role("hr", "manager")),
 ):
     position = JobPosition(**body.model_dump(), created_by=user.id)
     db.add(position)
@@ -48,7 +48,7 @@ def update_position(
     position_id: int,
     body: PositionUpdate,
     db: Session = Depends(get_db),
-    user: User = Depends(require_role("manager")),
+    user: User = Depends(require_role("hr", "manager")),
 ):
     position = db.query(JobPosition).filter(JobPosition.id == position_id).first()
     if not position:

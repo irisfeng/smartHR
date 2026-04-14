@@ -55,14 +55,6 @@ def test_create_position_as_manager(client, manager_headers, manager_user):
     assert "updated_at" in data
 
 
-def test_create_position_as_hr_forbidden(client, hr_headers):
-    """POST /api/positions as HR user returns 403."""
-    payload = _make_position_payload()
-    resp = client.post(POSITIONS_URL, json=payload, headers=hr_headers)
-
-    assert resp.status_code == 403
-
-
 def test_list_positions_after_create(client, manager_headers):
     """GET /api/positions returns created positions."""
     _create_position(client, manager_headers, title="Backend Engineer")
@@ -123,19 +115,6 @@ def test_update_position_as_manager(client, manager_headers):
     assert data["id"] == position_id
 
 
-def test_update_position_as_hr_forbidden(client, hr_headers, manager_headers):
-    """PUT /api/positions/{id} as HR user returns 403."""
-    create_resp = _create_position(client, manager_headers)
-    position_id = create_resp.json()["id"]
-
-    resp = client.put(
-        f"{POSITIONS_URL}/{position_id}",
-        json={"title": "Nope"},
-        headers=hr_headers,
-    )
-    assert resp.status_code == 403
-
-
 def test_update_position_status(client, manager_headers):
     """PUT /api/positions/{id} can change status from open to closed."""
     create_resp = _create_position(client, manager_headers)
@@ -157,3 +136,31 @@ def test_create_position_unauthenticated(client):
     resp = client.post(POSITIONS_URL, json=payload)
 
     assert resp.status_code == 403
+
+
+def test_hr_can_create_position(client, hr_headers):
+    resp = client.post(
+        "/api/positions",
+        headers=hr_headers,
+        json={
+            "title": "HR Created",
+            "department": "产研",
+            "description": "desc",
+            "requirements": "req",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "HR Created"
+
+
+def test_hr_can_update_position(client, db, hr_headers, hr_user):
+    from app.models import JobPosition
+    pos = JobPosition(title="T", department="D", description="X", created_by=hr_user.id)
+    db.add(pos); db.commit(); db.refresh(pos)
+    resp = client.put(
+        f"/api/positions/{pos.id}",
+        headers=hr_headers,
+        json={"title": "Updated"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "Updated"
