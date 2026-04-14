@@ -103,7 +103,7 @@ export default function PositionsPage() {
               <UploadOutlined /> 上传
             </a>
           )}
-          {user?.role === 'manager' && <a onClick={() => openEdit(record)}>编辑</a>}
+          {(user?.role === 'hr' || user?.role === 'manager') && <a onClick={() => openEdit(record)}>编辑</a>}
         </Space>
       ),
     },
@@ -113,7 +113,7 @@ export default function PositionsPage() {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#18181b' }}>职位管理</h2>
-        {user?.role === 'manager' && (
+        {(user?.role === 'hr' || user?.role === 'manager') && (
           <Button
             type="primary"
             icon={<PlusOutlined />}
