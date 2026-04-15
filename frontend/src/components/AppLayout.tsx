@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu, Modal, Form, Input, message } from 'antd';
 import {
@@ -60,7 +60,7 @@ export default function AppLayout() {
 
   const role = user?.role;
 
-  let menuItems: { key: string; icon: JSX.Element; label: string }[];
+  let menuItems: { key: string; icon: ReactNode; label: string }[];
   if (role === 'admin') {
     menuItems = [{ key: '/users', icon: <SettingOutlined />, label: '用户管理' }];
   } else {
