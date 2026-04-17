@@ -329,6 +329,8 @@ export default function CandidatesPage() {
       title: '推荐日期',
       dataIndex: 'recommend_date',
       width: 100,
+      sorter: (a: Candidate, b: Candidate) =>
+        (a.recommend_date || '\uffff').localeCompare(b.recommend_date || '\uffff'),
       render: (v: string, record: Candidate) => (
         <EditableCell value={v} onSave={(val) => updateField(record.id, 'recommend_date', val)} />
       ),
@@ -345,6 +347,8 @@ export default function CandidatesPage() {
       title: '年龄',
       dataIndex: 'age',
       width: 65,
+      sorter: (a: Candidate, b: Candidate) =>
+        (a.age ?? Number.POSITIVE_INFINITY) - (b.age ?? Number.POSITIVE_INFINITY),
       render: (v: number | null, record: Candidate) => (
         <EditableCell value={v} onSave={(val) => updateField(record.id, 'age', val)} type="number" />
       ),
@@ -395,6 +399,8 @@ export default function CandidatesPage() {
       title: '筛选日期',
       dataIndex: 'screening_date',
       width: 100,
+      sorter: (a: Candidate, b: Candidate) =>
+        (a.screening_date || '\uffff').localeCompare(b.screening_date || '\uffff'),
       render: (v: string, record: Candidate) => (
         <EditableCell value={v} onSave={(val) => updateField(record.id, 'screening_date', val)} />
       ),
@@ -419,6 +425,8 @@ export default function CandidatesPage() {
       title: '面试日期',
       dataIndex: 'interview_date',
       width: 100,
+      sorter: (a: Candidate, b: Candidate) =>
+        (a.interview_date || '\uffff').localeCompare(b.interview_date || '\uffff'),
       render: (v: string, record: Candidate) => (
         <EditableCell value={v} onSave={(val) => updateField(record.id, 'interview_date', val)} />
       ),
