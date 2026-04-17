@@ -202,6 +202,7 @@ export default function CandidatesPage() {
   const [loading, setLoading] = useState(false);
   const [position, setPosition] = useState<PositionDetail | null>(null);
   const [filterRec, setFilterRec] = useState<string | undefined>();
+  const [searchText, setSearchText] = useState('');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [detail, setDetail] = useState<CandidateDetail | null>(null);
 
@@ -567,6 +568,13 @@ export default function CandidatesPage() {
                 { label: '不推荐', value: '不推荐' },
               ]}
             />
+            <Input.Search
+              placeholder="搜索姓名 / 学校 / 专业"
+              allowClear
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: 260 }}
+            />
           </Space>
           <Space>
             <Popconfirm title="确定清空所有候选人？" onConfirm={async () => { await api.delete(`/api/positions/${id}/candidates`); setCandidates([]); message.success('已清空'); }}>
@@ -579,7 +587,13 @@ export default function CandidatesPage() {
           </Space>
         </div>
         <Table
-          dataSource={candidates}
+          dataSource={(() => {
+            const q = searchText.trim().toLowerCase();
+            if (!q) return candidates;
+            return candidates.filter((c) =>
+              [c.name, c.school, c.major].some((v) => (v || '').toLowerCase().includes(q))
+            );
+          })()}
           columns={columns}
           rowKey="id"
           loading={loading}
