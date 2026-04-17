@@ -502,10 +502,30 @@ export default function CandidatesPage() {
     {
       title: '',
       key: 'actions',
-      width: 60,
+      width: 110,
       fixed: 'right' as const,
       render: (_: unknown, record: Candidate) => (
-        <a onClick={() => openDetail(record.id)} style={{ color: '#6366f1', fontSize: 12 }}>详情</a>
+        <Space size={8}>
+          <a onClick={() => openDetail(record.id)} style={{ color: '#6366f1', fontSize: 12 }}>详情</a>
+          <Popconfirm
+            title="删除该候选人？"
+            description="此操作不可恢复"
+            okText="删除"
+            okButtonProps={{ danger: true }}
+            cancelText="取消"
+            onConfirm={async () => {
+              try {
+                await api.delete(`/api/candidates/${record.id}`);
+                setCandidates((prev) => prev.filter((c) => c.id !== record.id));
+                message.success('已删除');
+              } catch (e: any) {
+                message.error(e.response?.data?.detail || '删除失败');
+              }
+            }}
+          >
+            <a style={{ color: '#ef4444', fontSize: 12 }}>删除</a>
+          </Popconfirm>
+        </Space>
       ),
     },
   ];
