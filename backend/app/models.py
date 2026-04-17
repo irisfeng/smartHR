@@ -32,6 +32,7 @@ class Candidate(Base):
     job_position_id = Column(Integer, ForeignKey("job_positions.id"), nullable=False)
     upload_batch_id = Column(Integer, ForeignKey("upload_batches.id"), nullable=True)
     resume_file_path = Column(String(500), nullable=False)
+    file_hash = Column(String(64), nullable=True, index=True)
     parsed_text = Column(Text, default="")
     # Template fields
     sequence_no = Column(Integer, nullable=True)

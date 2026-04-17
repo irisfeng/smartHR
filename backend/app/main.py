@@ -11,6 +11,11 @@ Base.metadata.create_all(bind=engine)
 _NEW_COLUMNS = [
     ("candidates", "evaluation_result", "VARCHAR(50) DEFAULT ''"),
     ("users", "must_change_password", "BOOLEAN DEFAULT FALSE NOT NULL"),
+    ("candidates", "file_hash", "VARCHAR(64)"),
+]
+_NEW_INDEXES = [
+    ("ix_candidates_file_hash", "candidates", "file_hash"),
+    ("ix_candidates_pos_hash", "candidates", "job_position_id, file_hash"),
 ]
 with engine.connect() as conn:
     insp = inspect(engine)
@@ -18,6 +23,12 @@ with engine.connect() as conn:
         existing = {c["name"] for c in insp.get_columns(table)}
         if col not in existing:
             conn.execute(text(f'ALTER TABLE {table} ADD COLUMN {col} {col_type}'))
+            conn.commit()
+    insp = inspect(engine)
+    for idx_name, table, cols in _NEW_INDEXES:
+        existing_idx = {i["name"] for i in insp.get_indexes(table)}
+        if idx_name not in existing_idx:
+            conn.execute(text(f'CREATE INDEX {idx_name} ON {table} ({cols})'))
             conn.commit()
 
 docs_url = "/docs" if settings.env != "prod" else None

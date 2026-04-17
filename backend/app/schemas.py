@@ -156,6 +156,9 @@ class UploadBatchResponse(BaseModel):
     processed_count: int
     status: str
     created_at: datetime
+    imported_count: Optional[int] = None
+    skipped_count: Optional[int] = None
+    skipped_reason: Optional[str] = None
     class Config:
         from_attributes = True
 

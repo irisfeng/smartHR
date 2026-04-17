@@ -1,8 +1,21 @@
 import os
+import hashlib
 import zipfile
 import uuid
 from pathlib import Path
 from app.config import settings
+
+
+def sha256_bytes(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def sha256_file(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 def ensure_upload_dir() -> Path:
     path = Path(settings.upload_dir)
@@ -17,8 +30,12 @@ def save_uploaded_file(content: bytes, original_name: str, position_id: int) -> 
     file_path.write_bytes(content)
     return str(file_path)
 
-def extract_zip(zip_path: str, position_id: int) -> list[str]:
-    pdf_paths = []
+def extract_zip(zip_path: str, position_id: int) -> list[tuple[str, str]]:
+    """Extract PDFs from a zip. Returns list of (file_path, sha256_hash).
+    Intra-zip duplicates (same hash) are skipped.
+    """
+    pdf_entries: list[tuple[str, str]] = []
+    seen_hashes: set[str] = set()
     upload_dir = ensure_upload_dir() / str(position_id)
     upload_dir.mkdir(parents=True, exist_ok=True)
     max_single_file_mb = 50
@@ -37,13 +54,17 @@ def extract_zip(zip_path: str, position_id: int) -> list[str]:
             if info.file_size > max_single_file_mb * 1024 * 1024:
                 continue
             content = zf.read(info.filename)
+            h = sha256_bytes(content)
+            if h in seen_hashes:
+                continue
+            seen_hashes.add(h)
             unique_name = f"{uuid.uuid4().hex}_{base_name}"
             file_path = upload_dir / unique_name
             file_path.write_bytes(content)
-            pdf_paths.append(str(file_path))
-            if len(pdf_paths) >= max_total_files:
+            pdf_entries.append((str(file_path), h))
+            if len(pdf_entries) >= max_total_files:
                 break
-    return pdf_paths
+    return pdf_entries
 
 def validate_file(filename: str, size: int) -> str | None:
     lower = filename.lower()

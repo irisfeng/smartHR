@@ -88,8 +88,20 @@ export default function UploadPage() {
       formData.append('file', file);
       const res = await api.post(`/api/positions/${id}/upload`, formData);
       setBatches((prev) => [res.data, ...prev]);
-      pollBatch(res.data.id);
-      message.info('上传成功，开始处理...');
+      const imported = res.data.imported_count ?? res.data.file_count;
+      const skipped = res.data.skipped_count ?? 0;
+      if (imported > 0) {
+        pollBatch(res.data.id);
+        if (skipped > 0) {
+          message.info(`上传 ${imported} 份，${skipped} 份与已有简历重复已跳过`);
+        } else {
+          message.info('上传成功，开始处理...');
+        }
+      } else if (skipped > 0) {
+        message.warning(`${skipped} 份简历与已有记录重复，全部跳过`);
+      } else {
+        message.info('上传成功，开始处理...');
+      }
     } catch (e: any) {
       message.error(e.response?.data?.detail || '上传失败');
     } finally {

@@ -123,11 +123,13 @@ def test_extract_zip_basic(temp_upload_dir, tmp_path):
     with open(zip_path, "wb") as f:
         f.write(zip_bytes)
 
-    paths = extract_zip(zip_path, position_id=1)
+    entries = extract_zip(zip_path, position_id=1)
 
-    assert len(paths) == 1
-    assert paths[0].endswith(".pdf")
-    with open(paths[0], "rb") as f:
+    assert len(entries) == 1
+    path, h = entries[0]
+    assert path.endswith(".pdf")
+    assert len(h) == 64
+    with open(path, "rb") as f:
         assert f.read() == pdf_content
 
 
@@ -141,10 +143,10 @@ def test_extract_zip_skips_non_pdf(temp_upload_dir, tmp_path):
     with open(zip_path, "wb") as f:
         f.write(zip_bytes)
 
-    paths = extract_zip(zip_path, position_id=2)
+    entries = extract_zip(zip_path, position_id=2)
 
-    assert len(paths) == 1
-    assert all(p.endswith(".pdf") for p in paths)
+    assert len(entries) == 1
+    assert all(p.endswith(".pdf") for p, _ in entries)
 
 
 def test_extract_zip_skips_macosx(temp_upload_dir, tmp_path):
@@ -157,7 +159,7 @@ def test_extract_zip_skips_macosx(temp_upload_dir, tmp_path):
     with open(zip_path, "wb") as f:
         f.write(zip_bytes)
 
-    paths = extract_zip(zip_path, position_id=3)
+    entries = extract_zip(zip_path, position_id=3)
 
-    assert len(paths) == 1
-    assert "MACOSX" not in paths[0]
+    assert len(entries) == 1
+    assert "MACOSX" not in entries[0][0]

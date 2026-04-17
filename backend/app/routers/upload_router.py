@@ -5,7 +5,7 @@ from app.database import get_db, SessionLocal
 from app.models import User, JobPosition, Candidate, UploadBatch
 from app.schemas import UploadBatchResponse
 from app.auth import get_current_active_user, require_role
-from app.services.file_service import save_uploaded_file, extract_zip, validate_file
+from app.services.file_service import save_uploaded_file, extract_zip, validate_file, sha256_bytes, sha256_file
 from app.services.pipeline_service import process_batch
 
 router = APIRouter(prefix="/api", tags=["upload"])
@@ -34,24 +34,38 @@ async def upload_resumes(
         raise HTTPException(status_code=400, detail=error)
     saved_path = save_uploaded_file(content, file.filename, position_id)
     if file.filename.lower().endswith(".zip"):
-        pdf_paths = extract_zip(saved_path, position_id)
+        # extract_zip already dedups intra-zip by hash
+        pdf_entries = extract_zip(saved_path, position_id)
     else:
-        pdf_paths = [saved_path]
+        pdf_entries = [(saved_path, sha256_bytes(content))]
+
+    # DB-side dedup: skip entries whose hash already exists for this position
+    existing_hashes = {
+        h for (h,) in db.query(Candidate.file_hash)
+        .filter(
+            Candidate.job_position_id == position_id,
+            Candidate.file_hash.isnot(None),
+        ).all()
+    }
+    fresh_entries = [(p, h) for (p, h) in pdf_entries if h not in existing_hashes]
+    skipped_count = len(pdf_entries) - len(fresh_entries)
+
     batch = UploadBatch(
         job_position_id=position_id,
         uploaded_by=user.id,
         file_name=file.filename,
-        file_count=len(pdf_paths),
+        file_count=len(fresh_entries),
     )
     db.add(batch)
     db.commit()
     db.refresh(batch)
     existing_count = db.query(Candidate).filter(Candidate.job_position_id == position_id).count()
-    for i, pdf_path in enumerate(pdf_paths):
+    for i, (pdf_path, pdf_hash) in enumerate(fresh_entries):
         candidate = Candidate(
             job_position_id=position_id,
             upload_batch_id=batch.id,
             resume_file_path=pdf_path,
+            file_hash=pdf_hash,
             sequence_no=existing_count + i + 1,
             recommend_date=datetime.now().strftime("%Y-%m-%d"),
             recommend_channel="系统上传",
@@ -59,7 +73,11 @@ async def upload_resumes(
         )
         db.add(candidate)
     db.commit()
-    background_tasks.add_task(run_pipeline_background, batch.id)
+    if fresh_entries:
+        background_tasks.add_task(run_pipeline_background, batch.id)
+    batch.imported_count = len(fresh_entries)
+    batch.skipped_count = skipped_count
+    batch.skipped_reason = "与已上传简历重复" if skipped_count else None
     return batch
 
 @router.get("/upload-batches/{batch_id}/status", response_model=UploadBatchResponse)
