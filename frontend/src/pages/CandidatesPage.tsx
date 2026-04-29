@@ -328,7 +328,7 @@ export default function CandidatesPage() {
     {
       title: '推荐日期',
       dataIndex: 'recommend_date',
-      width: 100,
+      width: 120,
       sorter: (a: Candidate, b: Candidate) =>
         (a.recommend_date || '\uffff').localeCompare(b.recommend_date || '\uffff'),
       render: (v: string, record: Candidate) => (
@@ -625,7 +625,7 @@ export default function CandidatesPage() {
           columns={columns}
           rowKey="id"
           loading={loading}
-          pagination={{ pageSize: 50 }}
+          pagination={{ defaultPageSize: 50, showSizeChanger: true, pageSizeOptions: [20, 50, 100, 200] }}
           scroll={{ x: totalScrollX }}
           size="small"
           rowClassName={(record) => record?.parse_quality === 'poor' ? 'poor-quality-row' : ''}
