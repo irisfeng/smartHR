@@ -617,7 +617,7 @@ export default function CandidatesPage() {
           columns={columns}
           rowKey="id"
           loading={loading}
-          pagination={{ defaultPageSize: 50, showSizeChanger: true, pageSizeOptions: [20, 50, 100, 200] }}
+          pagination={{ defaultPageSize: 20, showSizeChanger: true, pageSizeOptions: [20, 50, 100, 200] }}
           scroll={{ x: totalScrollX }}
           size="small"
           rowClassName={(record) => record?.parse_quality === 'poor' ? 'poor-quality-row' : ''}
