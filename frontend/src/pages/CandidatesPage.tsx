@@ -293,14 +293,6 @@ export default function CandidatesPage() {
       ),
     },
     {
-      title: '身份证',
-      dataIndex: 'id_number',
-      width: 160,
-      render: (v: string, record: Candidate) => (
-        <MaskedCell value={v} onSave={(val) => updateField(record.id, 'id_number', val)} />
-      ),
-    },
-    {
       title: 'AI 评估',
       dataIndex: 'ai_recommendation',
       width: 80,
