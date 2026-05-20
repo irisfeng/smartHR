@@ -47,7 +47,7 @@ def _make_candidate(db, position_id: int, seq: int, name: str) -> Candidate:
 
 def test_generate_excel_no_template(db, hr_user, monkeypatch):
     """When template.xlsx does not exist, a workbook is created from scratch
-    with the correct 23 header columns."""
+    with all COLUMN_MAP header columns."""
     monkeypatch.setattr(
         "app.services.export_service.TEMPLATE_PATH",
         "/nonexistent/path/template.xlsx",
@@ -60,10 +60,10 @@ def test_generate_excel_no_template(db, hr_user, monkeypatch):
         wb = load_workbook(path)
         ws = wb.active
 
-        # Verify all 23 headers present in row 1
+        # Verify all COLUMN_MAP headers present in row 1
         headers = [ws.cell(row=1, column=c).value for c in range(1, len(COLUMN_MAP) + 1)]
         assert headers == EXPECTED_HEADERS
-        assert len(headers) == 23
+        assert len(headers) == len(COLUMN_MAP)
 
         # No data rows (position has no candidates)
         assert ws.cell(row=2, column=1).value is None
