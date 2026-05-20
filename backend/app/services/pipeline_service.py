@@ -62,15 +62,38 @@ async def process_batch(batch_id: int, db: Session):
         try:
             parsed_map = await parse_pdf_batch(file_paths, shared_client)
         except Exception as e:
-            logger.error(f"MinerU batch parse failed: {e}")
+            # parse_pdf_batch itself now handles per-chunk failures internally
+            # and returns empty strings for failed files, so this top-level
+            # except only fires on truly catastrophic errors (e.g. invalid
+            # config). Mark every candidate failed and bail.
+            logger.error(f"MinerU batch parse crashed: {e}", exc_info=True)
             parsed_map = {fp: "" for fp in file_paths}
 
-        # Save parsed text (strip NUL bytes — PostgreSQL rejects 0x00 in text columns)
+        # Save parsed text (strip NUL bytes — PostgreSQL rejects 0x00 in text columns).
+        # Candidates with empty parsed_text after MinerU are marked failed up-front
+        # so we don't waste AI calls on empty input and don't silently produce
+        # "0 score / 不推荐" rows that look like real evaluations.
+        candidates_for_ai: list[Candidate] = []
+        parse_failed_count = 0
         for c in candidates:
             raw = parsed_map.get(c.resume_file_path, "")
-            c.parsed_text = raw.replace("\x00", "") if raw else ""
-            c.status = "screening"
+            cleaned = raw.replace("\x00", "") if raw else ""
+            c.parsed_text = cleaned
+            if not cleaned.strip():
+                c.status = "failed"
+                c.error_message = "MinerU 解析失败或被限流（parsed_text 为空）"
+                batch.processed_count = (batch.processed_count or 0) + 1
+                parse_failed_count += 1
+            else:
+                c.status = "screening"
+                candidates_for_ai.append(c)
         db.commit()
+
+        if parse_failed_count:
+            logger.warning(
+                "Batch %s: %d/%d candidates failed PDF parsing (MinerU)",
+                batch_id, parse_failed_count, len(candidates),
+            )
 
         # -- Phase 2: Concurrent AI screening with semaphore --
         sem = asyncio.Semaphore(AI_CONCURRENCY)
@@ -99,7 +122,7 @@ async def process_batch(batch_id: int, db: Session):
                     batch.processed_count = (batch.processed_count or 0) + 1
                     db.commit()
 
-        await asyncio.gather(*[screen_one(c) for c in candidates])
+        await asyncio.gather(*[screen_one(c) for c in candidates_for_ai])
 
     # Commit any remaining results
     db.commit()
