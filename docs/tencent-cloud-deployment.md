@@ -23,6 +23,34 @@
 - OrcaTerm 终端: 实例详情页 → 登录（免密连接 TAT）
 - 防火墙: 实例详情页 → 防火墙 tab
 
+### Mac SSH 快速登录
+
+当前本机 Mac 已把 SSH 公钥加入 VPS 的 `ubuntu` 用户，并在 `~/.ssh/config` 配置了别名:
+
+```bash
+ssh tencent-smarthr
+```
+
+等价直连命令:
+
+```bash
+ssh -i ~/.ssh/id_ed25519 ubuntu@124.222.82.73
+```
+
+如果换一台 Mac，需要先把新机器的公钥追加到 VPS:
+
+```bash
+# 本机生成/查看公钥
+cat ~/.ssh/id_ed25519.pub
+
+# 通过腾讯云 OrcaTerm 登录 VPS 后，在 ubuntu 用户下执行
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+# 将新 Mac 的公钥追加到 ~/.ssh/authorized_keys
+```
+
 ---
 
 ## 2. 架构概览
@@ -211,6 +239,38 @@ docker compose down
 # 停止并删除数据卷（危险！会丢失数据）
 docker compose down -v
 ```
+
+### 5.1.1 开机自启检查
+
+SmartHR 依赖 Docker Compose 容器的 restart 策略自启。当前确认状态:
+
+- `docker.service` 和 `containerd.service` 均为 `enabled`
+- `smarthr-db-1`、`smarthr-api-1`、`smarthr-nginx-1` 均为 `restart=unless-stopped`
+- 因此正常重启 VPS 后，SmartHR 会随 Docker 自动拉起
+
+检查命令:
+
+```bash
+ssh tencent-smarthr
+
+systemctl is-enabled docker
+systemctl is-active docker
+
+cd /opt/smarthr
+sudo docker compose ps
+sudo docker inspect smarthr-db-1 smarthr-api-1 smarthr-nginx-1 \
+  --format '{{.Name}} restart={{.HostConfig.RestartPolicy.Name}} status={{.State.Status}}'
+```
+
+同机还有一个 `team-wiki` 项目，路径 `/opt/team-wiki`，对外端口 `8080`。当前只是参考服务，尚无人正式使用；它的容器当前 `restart=no`，重启 VPS 后不保证自动拉起。需要手动启动时:
+
+```bash
+cd /opt/team-wiki
+sudo docker compose up -d
+sudo docker compose ps
+```
+
+已知小问题: `team-wiki` 的 Postgres healthcheck 默认用用户 `wiki` 连接同名数据库，但实际数据库名是 `teamwiki`，所以日志里会持续出现 `database "wiki" does not exist`。业务连接配置指向 `teamwiki`，页面当前可访问。
 
 ### 5.2 数据库操作
 
@@ -409,9 +469,9 @@ docker compose restart api
 
 1. **`.env` 文件** — 权限 600，包含所有密钥，切勿提交到 Git
 2. **默认密码** — 所有账户初始密码 `Smart2026!`，首次登录强制修改
-3. **防火墙** — 仅开放 22 (SSH) 和 9527 (SmartHR)，不要开放 5432 (PostgreSQL)
+3. **防火墙** — SmartHR 需要开放 22 (SSH) 和 9527 (HTTP)；同机 `team-wiki` 当前使用 8080；不要开放 5432 (PostgreSQL)
 4. **出站流量** — 默认全部放行（调用 MinerU、DeepSeek API 需要）
-5. **SSH 登录** — 建议后续绑定密钥登录，关闭密码登录
+5. **SSH 登录** — 已为当前 Mac 配置 `ubuntu` 密钥登录；已关闭 SSH 密码登录和 root 直登
 6. **HTTPS** — 当前 HTTP 明文，备案域名后应尽快启用 Let's Encrypt SSL
 
 ---
@@ -441,6 +501,7 @@ docker compose restart api
 - [ ] 域名备案 (ICP) 后绑定域名
 - [ ] 启用 HTTPS (Let's Encrypt)
 - [ ] 配置每日自动备份 cron
-- [ ] SSH 密钥登录，关闭密码登录
+- [x] 当前 Mac 到 VPS 的 SSH 密钥登录
+- [x] 关闭 SSH 密码登录和 root 直登
 - [ ] 监控告警（磁盘、内存、服务状态）
 - [ ] CI/CD 自动化部署

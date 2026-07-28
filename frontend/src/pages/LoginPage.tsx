@@ -74,24 +74,37 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)',
-    }}>
-      <Card style={{ width: 380, borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
+    <div className="login-screen">
+      <section className="login-copy">
+        <div className="brand-lockup" style={{ padding: 0, border: 0, marginBottom: 30 }}>
+          <div className="brand-mark">S</div>
+          <div className="brand-text">
+            <span className="brand-title">SmartHR</span>
+            <span className="brand-subtitle">智能简历筛选系统</span>
+          </div>
+        </div>
+        <h1>
+          <span>把简历筛选流程</span>
+          <span>收进一个工作台</span>
+        </h1>
+        <p>职位、批量上传、AI 初筛、候选人流转和 Excel 导出集中管理，保留人工复核空间。</p>
+        <div className="login-proof">
+          <span>职位维度管理</span>
+          <span>PDF / ZIP 批量解析</span>
+          <span>候选人表格可编辑</span>
+        </div>
+      </section>
+      <Card className="login-card">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ color: '#6366f1', fontSize: 26, letterSpacing: 2, margin: 0 }}>SmartHR</h1>
-          <p style={{ color: '#a1a1aa', fontSize: 13, marginTop: 6 }}>智能简历筛选系统</p>
+          <h2 style={{ color: '#111827', fontSize: 24, fontWeight: 760, margin: 0 }}>登录工作台</h2>
+          <p style={{ color: '#64748b', fontSize: 13, marginTop: 8 }}>使用你的 SmartHR 账号继续</p>
         </div>
         <Form onFinish={onFinish} layout="vertical">
           <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input size="large" style={{ borderRadius: 10 }} />
+            <Input size="large" />
           </Form.Item>
           <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
-            <Input.Password size="large" style={{ borderRadius: 10 }} />
+            <Input.Password size="large" />
           </Form.Item>
           <Button
             type="primary"
@@ -99,9 +112,9 @@ export default function LoginPage() {
             block
             size="large"
             loading={loading}
-            style={{ borderRadius: 10, background: '#6366f1', borderColor: '#6366f1', letterSpacing: 2 }}
+            style={{ letterSpacing: 1 }}
           >
-            登 录
+            登录
           </Button>
         </Form>
       </Card>

@@ -157,17 +157,21 @@ export default function UsersPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>用户管理</h2>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">用户管理</h2>
+          <p className="page-subtitle">维护 HR、用人经理和管理员账号权限。</p>
+        </div>
         {isAdmin && (
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)} style={{ borderRadius: 8 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
             新建用户
           </Button>
         )}
       </div>
 
-      <Card style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
-        <Table dataSource={users} columns={columns} rowKey="id" loading={loading} pagination={false} />
+      <Card className="surface-card">
+        <p className="table-scroll-note">表格可左右滑动查看完整信息</p>
+        <Table dataSource={users} columns={columns} rowKey="id" loading={loading} pagination={false} scroll={{ x: 640 }} />
       </Card>
 
       {/* Create modal */}

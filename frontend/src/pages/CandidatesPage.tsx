@@ -535,20 +535,27 @@ export default function CandidatesPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/positions')} type="text" />
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>{position?.title || ''}</h2>
-        <Tag style={{ borderRadius: 20 }}>{stats.total}人</Tag>
-        <Tag color="success" style={{ borderRadius: 20 }}>推荐 {stats.recommended}</Tag>
-        <Tag color="warning" style={{ borderRadius: 20 }}>待定 {stats.pending}</Tag>
-        <Tag color="error" style={{ borderRadius: 20 }}>不推荐 {stats.rejected}</Tag>
+      <div className="page-header">
+        <div className="page-title-group">
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/positions')} type="text" />
+          <div>
+            <h2 className="page-title">{position?.title || '候选人列表'}</h2>
+            <div className="stat-row" style={{ marginTop: 8 }}>
+              <Tag style={{ borderRadius: 20 }}>{stats.total} 人</Tag>
+              <Tag color="success" style={{ borderRadius: 20 }}>推荐 {stats.recommended}</Tag>
+              <Tag color="warning" style={{ borderRadius: 20 }}>待定 {stats.pending}</Tag>
+              <Tag color="error" style={{ borderRadius: 20 }}>不推荐 {stats.rejected}</Tag>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Position JD & Requirements — collapsible, so HR can see what the manager wrote */}
       {position && (position.description || position.requirements) && (
         <Collapse
           size="small"
-          style={{ marginBottom: 16, borderRadius: 8 }}
+          className="surface-card"
+          style={{ marginBottom: 16 }}
           items={[{
             key: 'jd',
             label: (
@@ -573,9 +580,9 @@ export default function CandidatesPage() {
         />
       )}
 
-      <Card style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-          <Space>
+      <Card className="surface-card">
+        <div className="toolbar">
+          <div className="toolbar-group">
             <Select
               placeholder="AI推荐筛选"
               allowClear
@@ -595,17 +602,18 @@ export default function CandidatesPage() {
               onChange={(e) => setSearchText(e.target.value)}
               style={{ width: 260 }}
             />
-          </Space>
-          <Space>
+          </div>
+          <div className="toolbar-group">
             <Popconfirm title="确定清空所有候选人？" onConfirm={async () => { await api.delete(`/api/positions/${id}/candidates`); setCandidates([]); message.success('已清空'); }}>
               <Button icon={<DeleteOutlined />} danger disabled={candidates.length === 0}>清空候选人</Button>
             </Popconfirm>
             <Button icon={<UploadOutlined />} onClick={() => navigate(`/positions/${id}/upload`)}>上传简历</Button>
-            <Button type="primary" icon={<DownloadOutlined />} onClick={exportExcel} style={{ background: '#6366f1' }}>
+            <Button type="primary" icon={<DownloadOutlined />} onClick={exportExcel}>
               导出 Excel
             </Button>
-          </Space>
+          </div>
         </div>
+        <p className="table-scroll-note">候选人字段较多，表格可左右滑动查看和编辑</p>
         <Table
           dataSource={(() => {
             const q = searchText.trim().toLowerCase();
@@ -629,6 +637,7 @@ export default function CandidatesPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         width={560}
+        styles={{ body: { paddingBottom: 32 } }}
       >
         {detail && (
           <>

@@ -57,14 +57,21 @@ export default function CandidateListPage() {
 
   return (
     <>
-      <h2 style={{ margin: '0 0 20px', fontSize: 18, fontWeight: 600, color: '#18181b' }}>候选人管理</h2>
-      <Card style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">候选人管理</h2>
+          <p className="page-subtitle">按职位查看候选人池、AI 初筛结果和后续面试流转。</p>
+        </div>
+      </div>
+      <Card className="surface-card">
+        <p className="table-scroll-note">表格可左右滑动查看完整信息</p>
         <Table
           dataSource={positions}
           columns={columns}
           rowKey="id"
           loading={loading}
           pagination={false}
+          scroll={{ x: 680 }}
         />
       </Card>
     </>
