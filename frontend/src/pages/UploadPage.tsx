@@ -112,17 +112,20 @@ export default function UploadPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <Button icon={<ArrowLeftOutlined />} onClick={handleNavigateBack} type="text" />
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>
-          上传简历 <span style={{ fontWeight: 400, color: '#a1a1aa', fontSize: 14 }}>— {positionTitle}</span>
-        </h2>
+      <div className="page-header">
+        <div className="page-title-group">
+          <Button icon={<ArrowLeftOutlined />} onClick={handleNavigateBack} type="text" />
+          <div>
+            <h2 className="page-title">上传简历</h2>
+            <p className="page-subtitle">{positionTitle || '当前职位'} · 支持单个 PDF 或 ZIP 批量导入</p>
+          </div>
+        </div>
       </div>
 
       {hasActiveProcessing && (
         <Card
+          className="surface-card"
           style={{
-            borderRadius: 12,
             marginBottom: 16,
             background: '#fffbeb',
             border: '1px solid #fbbf24',
@@ -137,22 +140,22 @@ export default function UploadPage() {
         </Card>
       )}
 
-      <Card style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)', marginBottom: 20 }}>
+      <Card className="surface-card" style={{ marginBottom: 20 }}>
         <Upload.Dragger
           accept=".pdf,.zip"
           showUploadList={false}
           beforeUpload={handleUpload}
           disabled={uploading}
-          style={{ borderRadius: 12, background: '#fafaff' }}
+          style={{ borderRadius: 10, background: '#f8fafc', borderColor: '#dbe3ef' }}
         >
-          <p style={{ fontSize: 36, opacity: 0.4, margin: '12px 0' }}>&#128196;</p>
-          <p style={{ color: '#71717a', margin: '0 0 4px' }}>点击或拖拽文件至此处</p>
-          <p style={{ color: '#a1a1aa', fontSize: 12 }}>支持 .zip .pdf，ZIP 内自动解析所有 PDF</p>
+          <p style={{ fontSize: 36, opacity: 0.55, margin: '12px 0', color: '#2563eb' }}>&#128196;</p>
+          <p style={{ color: '#334155', margin: '0 0 4px', fontWeight: 700 }}>点击或拖拽文件至此处</p>
+          <p style={{ color: '#64748b', fontSize: 12 }}>支持 .zip .pdf，ZIP 内自动解析所有 PDF</p>
         </Upload.Dragger>
       </Card>
 
       {batches.length > 0 && (
-        <Card title="处理进度" style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
+        <Card title="处理进度" className="surface-card">
           {batches.map((batch) => (
             <div key={batch.id} style={{
               padding: '12px 16px',
@@ -160,6 +163,7 @@ export default function UploadPage() {
                 : batch.status === 'failed' ? '#fef2f2'
                 : '#eef2ff',
               borderRadius: 8,
+              border: '1px solid rgba(148, 163, 184, 0.18)',
               marginBottom: 12,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>

@@ -14,9 +14,36 @@ import ForceChangePasswordPage from './pages/ForceChangePasswordPage';
 
 const theme = {
   token: {
-    colorPrimary: '#6366f1',
+    colorPrimary: '#2563eb',
+    colorInfo: '#2563eb',
+    colorSuccess: '#16a34a',
+    colorWarning: '#d97706',
+    colorError: '#dc2626',
+    colorText: '#111827',
+    colorTextSecondary: '#475569',
+    colorBorder: '#e5e7eb',
     borderRadius: 8,
-    colorBgLayout: '#f8fafc',
+    colorBgLayout: '#f5f7fb',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+  },
+  components: {
+    Button: {
+      controlHeight: 36,
+      borderRadius: 8,
+    },
+    Card: {
+      borderRadiusLG: 10,
+    },
+    Table: {
+      headerBg: '#f8fafc',
+      rowHoverBg: '#f8fafc',
+    },
+    Input: {
+      borderRadius: 8,
+    },
+    Select: {
+      borderRadius: 8,
+    },
   },
 };
 

@@ -35,9 +35,9 @@ export default function ForceChangePasswordPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc' }}>
-      <Card style={{ width: 420, borderRadius: 12 }}>
-        <h2 style={{ marginTop: 0 }}>请修改密码</h2>
+    <div className="login-screen" style={{ gridTemplateColumns: 'minmax(0, 460px)', justifyContent: 'center' }}>
+      <Card className="login-card">
+        <h2 style={{ marginTop: 0, color: '#111827' }}>请修改密码</h2>
         <p style={{ color: '#71717a', fontSize: 13 }}>为保护账户安全，请先修改当前密码。至少 8 位，包含大小写字母、数字和特殊字符。</p>
         <Form form={form} layout="vertical" onFinish={onSubmit}>
           <Form.Item name="old_password" label="当前密码" rules={[{ required: true }]}>

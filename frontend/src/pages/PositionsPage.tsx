@@ -111,33 +111,42 @@ export default function PositionsPage() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600, color: '#18181b' }}>职位管理</h2>
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">职位管理</h2>
+          <p className="page-subtitle">维护招聘职位，进入候选人列表或上传简历。</p>
+        </div>
         {(user?.role === 'hr' || user?.role === 'manager') && (
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => { setEditingId(null); form.resetFields(); setModalOpen(true); }}
-            style={{ borderRadius: 8 }}
           >
             新建职位
           </Button>
         )}
       </div>
-      <Card style={{ borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
-        <Input
-          prefix={<SearchOutlined />}
-          placeholder="搜索职位..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 260, marginBottom: 16, borderRadius: 8 }}
-        />
+      <Card className="surface-card">
+        <div className="toolbar">
+          <div className="toolbar-group">
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="搜索职位 / 部门"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ width: 280 }}
+            />
+          </div>
+          <span style={{ color: '#64748b', fontSize: 13 }}>共 {filtered.length} 个职位</span>
+        </div>
+        <p className="table-scroll-note">表格可左右滑动查看完整信息</p>
         <Table
           dataSource={filtered}
           columns={columns}
           rowKey="id"
           loading={loading}
           pagination={false}
+          scroll={{ x: 820 }}
         />
       </Card>
 
@@ -146,6 +155,7 @@ export default function PositionsPage() {
         open={!!detailDrawer}
         onClose={() => setDetailDrawer(null)}
         width={520}
+        styles={{ body: { paddingBottom: 32 } }}
       >
         {detailDrawer && (
           <Descriptions column={1} bordered size="small">
